@@ -106,3 +106,9 @@ tests/               unittest suites (lessons, harness, server security)
 ```powershell
 python -m unittest discover -s tests -v
 ```
+
+## License
+
+The project's own code and lessons are licensed under the **Apache License 2.0** (see
+`LICENSE`). The bundled Pyodide runtime in `public/vendor/pyodide/` is a separate work under
+the Mozilla Public License 2.0 (see `THIRD_PARTY_NOTICES.md`).
