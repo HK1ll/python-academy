@@ -65,9 +65,13 @@ SECTIONS = [
         "title": "Object-Oriented Programming",
         "ids": ["classes", "class-design", "special-methods", "inheritance", "abstract-composition", "dataclasses-enums"],
     },
+    {"title": "Intermediate Python", "ids": ["flexible-functions", "generators", "decorators"]},
     {
         "title": "Programming for Security",
-        "ids": ["secure-classes", "regex", "collections-tools", "networking", "project-log-analyzer"],
+        "ids": [
+            "secure-classes", "regex", "collections-tools", "networking",
+            "encoding", "integrity", "time-detection", "project-log-analyzer",
+        ],
     },
 ]
 
@@ -2217,6 +2221,621 @@ assert worst([]) is None, "worst([]) should return None."
 """,
         },
     },
+    # ------------------------------------------------------------------ flexible-functions
+    {
+        "id": "flexible-functions",
+        "title": "Flexible Functions & Scope",
+        "summary": "Variable arguments, keyword-only options, closures and recursion.",
+        "blocks": [
+            p("Functions can accept any number of arguments. `*name` collects extra positional arguments into a **tuple**, and `**name` collects extra keyword arguments into a **dictionary**."),
+            code(
+                """\
+def total(*numbers):
+    return sum(numbers)
+
+print(total(1, 2, 3))
+print(total())
+
+def describe(**details):
+    for key in sorted(details):
+        print(key, "=", details[key])
+
+describe(user="ada", role="admin")"""
+            ),
+            out(
+                """\
+6
+0
+role = admin
+user = ada"""
+            ),
+            h("Options and unpacking"),
+            p(
+                "Parameters after a bare `*` are **keyword-only**: callers must name them. You can also *unpack* a list "
+                "or dictionary into a call with `*` and `**`."
+            ),
+            code(
+                """\
+def connect(host, port=443, *, secure=True):
+    return f"{host}:{port} secure={secure}"
+
+print(connect("example.com"))
+print(connect("example.com", 8443, secure=False))
+
+settings = {"host": "example.org", "port": 22}
+print(connect(**settings))
+
+args = ["example.net", 80]
+print(connect(*args))"""
+            ),
+            out(
+                """\
+example.com:443 secure=True
+example.com:8443 secure=False
+example.org:22 secure=True
+example.net:80 secure=True"""
+            ),
+            sec(
+                "Make risky options **keyword-only with a safe default**, like `verify_tls=True`. To turn it off, "
+                "someone must write `verify_tls=False` out loud, which stands out in code review instead of hiding as a "
+                "mystery `False` in a list of arguments."
+            ),
+            h("The mutable default trap"),
+            p("A default value is created **once**, when the function is defined. A list default is then shared by every call."),
+            code(
+                """\
+def add_tag(tag, tags=[]):
+    tags.append(tag)
+    return tags
+
+print(add_tag("a"))
+print(add_tag("b"))
+
+def add_tag_safe(tag, tags=None):
+    if tags is None:
+        tags = []
+    tags.append(tag)
+    return tags
+
+print(add_tag_safe("a"))
+print(add_tag_safe("b"))"""
+            ),
+            out(
+                """\
+['a']
+['a', 'b']
+['a']
+['b']"""
+            ),
+            p("The safe pattern is `None` as the default, then create the list inside the function."),
+            h("Scope"),
+            p("A name assigned inside a function is **local** to it. Assigning to a name never changes a variable of the same name outside."),
+            code(
+                """\
+counter = 0
+
+def bump():
+    counter = 100          # a brand-new LOCAL variable
+    return counter
+
+print(bump())
+print(counter)
+
+def bump_global():
+    global counter
+    counter += 1
+
+bump_global()
+print(counter)"""
+            ),
+            out(
+                """\
+100
+0
+1"""
+            ),
+            tip("Avoid `global`. Pass values in and return results instead, so a function's behaviour depends only on what it is given."),
+            h("Closures"),
+            p("A function defined inside another can **remember** the outer function's variables, even after the outer function has finished. `nonlocal` lets it change them."),
+            code(
+                """\
+def make_multiplier(factor):
+    def multiply(number):
+        return number * factor
+    return multiply
+
+double = make_multiplier(2)
+print(double(21))
+
+def make_counter():
+    count = 0
+    def increment():
+        nonlocal count
+        count += 1
+        return count
+    return increment
+
+counter = make_counter()
+print(counter(), counter(), counter())"""
+            ),
+            out(
+                """\
+42
+1 2 3"""
+            ),
+            h("Recursion"),
+            p("A function can call itself. It needs a **base case** that stops the calls, and each call must move toward it."),
+            code(
+                """\
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+print(factorial(5))
+
+def depth(nested):
+    if not isinstance(nested, list):
+        return 0
+    return 1 + max((depth(item) for item in nested), default=0)
+
+print(depth([1, [2, [3]], 4]))
+
+def count_down(n):
+    return count_down(n - 1)      # no base case!
+
+try:
+    count_down(10)
+except RecursionError:
+    print("Too deep: RecursionError")"""
+            ),
+            out(
+                """\
+120
+3
+Too deep: RecursionError"""
+            ),
+            sec("Code that recurses over **untrusted nested data** (deeply nested JSON, for instance) can be crashed by input nested thousands of levels deep. Cap the depth you accept, and handle `RecursionError`."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write two functions. `format_event(event_type, *details, **fields)` returns the event type in upper case, then "
+                "(only if given) the details joined by spaces, then (only if given) the fields as `key=value` sorted by key and "
+                "joined by spaces, with the parts separated by `\" | \"`. For example `format_event(\"login\", \"ok\", user=\"ada\", "
+                "ip=\"1.2.3.4\")` is `LOGIN | ok | ip=1.2.3.4 user=ada`. `make_limiter(max_calls)` returns a function `allow()`: "
+                "it returns `True` for the first `max_calls` calls and `False` afterwards. Each limiter keeps its own count."
+            ),
+            "starter": "def format_event(event_type, *details, **fields):\n    pass\n\n\ndef make_limiter(max_calls):\n    pass\n",
+            "hint": "Build a list `parts = [event_type.upper()]` and append the details and fields strings only when they exist, then `\" | \".join(parts)`. For the limiter, keep `calls = 0` in the outer function, and in the inner function use `nonlocal calls`, increment, and return `calls <= max_calls`.",
+            "solution": (
+                "def format_event(event_type, *details, **fields):\n"
+                "    parts = [event_type.upper()]\n"
+                "    if details:\n"
+                '        parts.append(" ".join(str(detail) for detail in details))\n'
+                "    if fields:\n"
+                '        parts.append(" ".join(f"{key}={fields[key]}" for key in sorted(fields)))\n'
+                '    return " | ".join(parts)\n\n\n'
+                "def make_limiter(max_calls):\n"
+                "    calls = 0\n\n"
+                "    def allow():\n"
+                "        nonlocal calls\n"
+                "        calls += 1\n"
+                "        return calls <= max_calls\n\n"
+                "    return allow\n"
+            ),
+            "check": """\
+assert format_event("login") == "LOGIN", f"format_event('login') should be 'LOGIN' but is {format_event('login')!r}."
+assert format_event("login", "ok") == "LOGIN | ok", f"got {format_event('login', 'ok')!r}"
+assert format_event("login", "ok", "fast") == "LOGIN | ok fast", f"got {format_event('login', 'ok', 'fast')!r}"
+assert format_event("login", user="ada") == "LOGIN | user=ada", f"got {format_event('login', user='ada')!r}"
+got = format_event("login", "ok", user="ada", ip="1.2.3.4")
+assert got == "LOGIN | ok | ip=1.2.3.4 user=ada", f"Expected 'LOGIN | ok | ip=1.2.3.4 user=ada' but got {got!r}."
+first = make_limiter(2)
+assert [first(), first(), first(), first()] == [True, True, False, False], "A limiter with max_calls=2 should allow exactly 2 calls."
+second = make_limiter(1)
+assert second() is True, "Each limiter must keep its own count (a new limiter starts fresh)."
+assert first() is False, "The first limiter is still used up."
+assert make_limiter(0)() is False, "max_calls=0 should never allow anything."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ generators
+    {
+        "id": "generators",
+        "title": "Iterators & Generators",
+        "summary": "Produce values one at a time so huge inputs never fill memory.",
+        "blocks": [
+            p("A `for` loop works on anything **iterable**. Under the hood Python asks for an **iterator** with `iter()` and then calls `next()` until it runs out."),
+            code(
+                """\
+letters = iter(["a", "b"])
+print(next(letters))
+print(next(letters))
+
+try:
+    next(letters)
+except StopIteration:
+    print("done")"""
+            ),
+            out(
+                """\
+a
+b
+done"""
+            ),
+            h("Generators"),
+            p(
+                "A function that uses `yield` is a **generator function**. Calling it doesn't run the body; it returns an "
+                "iterator. Each `next()` runs the code until the next `yield`, hands back that value, and **pauses** there."
+            ),
+            code(
+                """\
+def countdown(n):
+    while n > 0:
+        yield n
+        n -= 1
+
+print(list(countdown(3)))
+
+for value in countdown(2):
+    print(value)"""
+            ),
+            out(
+                """\
+[3, 2, 1]
+2
+1"""
+            ),
+            p("Generators are **lazy**: nothing is produced until someone asks. Watch the order of the messages."),
+            code(
+                """\
+def numbers():
+    print("producing 1")
+    yield 1
+    print("producing 2")
+    yield 2
+
+gen = numbers()
+print("created")
+print(next(gen))
+print(next(gen))"""
+            ),
+            out(
+                """\
+created
+producing 1
+1
+producing 2
+2"""
+            ),
+            h("Pipelines"),
+            p("Generators chain together: each stage pulls one item at a time from the previous one, so a huge file is processed with almost no memory."),
+            code(
+                """\
+def read_lines(text):
+    for line in text.splitlines():
+        yield line.strip()
+
+def only_failures(lines):
+    for line in lines:
+        if "FAILED" in line:
+            yield line
+
+log = "ok 1\\nFAILED 2\\n  ok 3  \\nFAILED 4"
+for line in only_failures(read_lines(log)):
+    print(line)"""
+            ),
+            out(
+                """\
+FAILED 2
+FAILED 4"""
+            ),
+            sec(
+                "Attackers can send **enormous** inputs to exhaust memory. Read logs and uploads a line or a chunk at a time "
+                "with generators, and enforce a maximum size, instead of loading everything with a single `read()`."
+            ),
+            h("Endless streams and iterable classes"),
+            code(
+                """\
+from itertools import islice
+
+def naturals():
+    n = 1
+    while True:
+        yield n
+        n += 1
+
+print(list(islice(naturals(), 5)))
+
+class Countdown:
+    def __init__(self, start):
+        self.start = start
+
+    def __iter__(self):
+        n = self.start
+        while n > 0:
+            yield n
+            n -= 1
+
+print(list(Countdown(3)))"""
+            ),
+            out(
+                """\
+[1, 2, 3, 4, 5]
+[3, 2, 1]"""
+            ),
+            p("An endless generator is safe because it is lazy: `islice` takes just the first few values. A class becomes iterable by defining `__iter__`, and writing it as a generator is the easiest way."),
+            warn("A generator can only be used **once**. After it is exhausted, looping over it again gives nothing. Call the generator function again to start over."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write the generator function `failed_ips(lines)`. `lines` is any iterable of log lines. Yield the **IP address** "
+                "(the last word) of every line that starts with `Failed password for`, and ignore all other lines. It must be "
+                "**lazy**: it may only read as many lines as it needs to produce the next value."
+            ),
+            "starter": "def failed_ips(lines):\n    pass\n",
+            "hint": "Loop over `lines`. For each line, `if line.startswith(\"Failed password for\"):` then `yield line.split()[-1]`. Use `yield`, not a list, so it stays lazy.",
+            "solution": (
+                "def failed_ips(lines):\n"
+                "    for line in lines:\n"
+                '        if line.startswith("Failed password for"):\n'
+                "            yield line.split()[-1]\n"
+            ),
+            "check": """\
+pulled = []
+
+def feed():
+    for i in range(1, 1001):
+        pulled.append(i)
+        if i % 3 == 0:
+            yield f"Failed password for user{i} from 10.0.0.{i}"
+        else:
+            yield f"Accepted password for user{i} from 10.0.0.1"
+
+stream = failed_ips(feed())
+assert next(stream) == "10.0.0.3", "The first failed login is line 3, from 10.0.0.3."
+assert len(pulled) == 3, f"failed_ips must be lazy: it read {len(pulled)} lines just to find the first result (it should read 3). Use yield, not a list."
+assert next(stream) == "10.0.0.6", "The second failed login is line 6."
+assert len(pulled) == 6, "It should only have read 6 lines so far."
+assert list(failed_ips([])) == [], "No lines means no results."
+assert list(failed_ips(["Accepted password for a from 1.1.1.1", "cron: job done"])) == [], "Only 'Failed password for' lines count."
+assert list(failed_ips(["Failed password for a from 1.1.1.1", "x", "Failed password for b from 2.2.2.2"])) == ["1.1.1.1", "2.2.2.2"], "It should yield every failed login's IP, in order."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ decorators
+    {
+        "id": "decorators",
+        "title": "Decorators & Context Managers",
+        "summary": "Wrap behaviour around functions and blocks: access control, auditing and guaranteed cleanup.",
+        "blocks": [
+            p(
+                "In Python, functions are values you can pass around. A **decorator** is a function that takes a function and "
+                "returns an improved one. `@shout` above a function is shorthand for `greet = shout(greet)`."
+            ),
+            code(
+                """\
+def shout(func):
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs).upper()
+    return wrapper
+
+@shout
+def greet(name):
+    return f"hello, {name}"
+
+print(greet("ada"))"""
+            ),
+            out("HELLO, ADA"),
+            p("`wrapper` accepts `*args, **kwargs` so it can forward any arguments. Use `functools.wraps` to keep the original function's name and documentation."),
+            code(
+                """\
+from functools import wraps
+
+def logged(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"calling {func.__name__}")
+        return func(*args, **kwargs)
+    return wrapper
+
+@logged
+def add(a, b):
+    return a + b
+
+print(add(2, 3))
+print(add.__name__)"""
+            ),
+            out(
+                """\
+calling add
+5
+add"""
+            ),
+            h("Decorators with arguments"),
+            p("To configure a decorator, add one more layer: a function that takes the settings and returns the real decorator."),
+            code(
+                """\
+from functools import wraps
+
+def require_role(role):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(user, *args, **kwargs):
+            if user.get("role") != role:
+                raise PermissionError(f"{user['name']} needs role {role!r}")
+            return func(user, *args, **kwargs)
+        return wrapper
+    return decorator
+
+@require_role("admin")
+def delete_account(user, target):
+    return f"{target} deleted by {user['name']}"
+
+admin = {"name": "ada", "role": "admin"}
+guest = {"name": "eve", "role": "guest"}
+
+print(delete_account(admin, "bob"))
+try:
+    delete_account(guest, "bob")
+except PermissionError as error:
+    print("Denied:", error)"""
+            ),
+            out(
+                """\
+bob deleted by ada
+Denied: eve needs role 'admin'"""
+            ),
+            sec(
+                "Decorators keep **cross-cutting rules in one place**: permission checks, audit logging, rate limits. Put the "
+                "rule on every sensitive function with one line, and a function can't forget it. (Real systems still "
+                "enforce permissions on the server side too.)"
+            ),
+            h("Context managers"),
+            p(
+                "A `with` block guarantees setup and **cleanup**, even if an error happens inside. Any object with `__enter__` "
+                "and `__exit__` works. Returning `False` from `__exit__` lets errors continue on their way."
+            ),
+            code(
+                """\
+class AuditScope:
+    def __init__(self, action):
+        self.action = action
+
+    def __enter__(self):
+        print("START", self.action)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        status = "FAILED" if exc_type else "OK"
+        print("END", self.action, status)
+        return False            # don't swallow the error
+
+with AuditScope("backup"):
+    print("working")
+
+try:
+    with AuditScope("restore"):
+        raise ValueError("disk full")
+except ValueError:
+    print("error propagated")"""
+            ),
+            out(
+                """\
+START backup
+working
+END backup OK
+START restore
+END restore FAILED
+error propagated"""
+            ),
+            p("`contextlib.contextmanager` builds one from a generator: code before `yield` is the setup, code after it (in `finally`) is the cleanup."),
+            code(
+                """\
+from contextlib import contextmanager
+
+@contextmanager
+def opened(name):
+    print("open", name)
+    try:
+        yield name
+    finally:
+        print("close", name)
+
+with opened("db") as handle:
+    print("using", handle)"""
+            ),
+            out(
+                """\
+open db
+using db
+close db"""
+            ),
+            sec("`with` and `finally` make sure privileged actions are always **closed out**: files closed, locks released, and the end of a sensitive operation logged, even when something fails halfway."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write a decorator and a context manager. `audit(log)` is a decorator factory: the wrapped function's calls are "
+                "recorded in the list `log` as `(function_name, \"ok\")` after a successful call, or `(function_name, \"error\")` "
+                "if it raises (the error must still propagate). The wrapped function must keep its `__name__`. "
+                "`temporary_flag(settings, key, value)` is a context manager that sets `settings[key] = value` inside the "
+                "`with` block and afterwards restores the old value (or removes the key if it wasn't there), **even if an error occurs**."
+            ),
+            "starter": "from contextlib import contextmanager\nfrom functools import wraps\n\n\ndef audit(log):\n    pass\n\n\n@contextmanager\ndef temporary_flag(settings, key, value):\n    yield\n",
+            "hint": "`audit` needs three layers: `audit(log)` returns `decorator(func)` which returns `wrapper(*args, **kwargs)`. In the wrapper use `try`/`except Exception:` to append `\"error\"` and `raise` again. For the context manager, remember `existed = key in settings` and `previous = settings.get(key)`, set the new value, then `try: yield` / `finally:` restore.",
+            "solution": (
+                "from contextlib import contextmanager\nfrom functools import wraps\n\n\n"
+                "def audit(log):\n"
+                "    def decorator(func):\n"
+                "        @wraps(func)\n"
+                "        def wrapper(*args, **kwargs):\n"
+                "            try:\n"
+                "                result = func(*args, **kwargs)\n"
+                "            except Exception:\n"
+                '                log.append((func.__name__, "error"))\n'
+                "                raise\n"
+                '            log.append((func.__name__, "ok"))\n'
+                "            return result\n"
+                "        return wrapper\n"
+                "    return decorator\n\n\n"
+                "@contextmanager\n"
+                "def temporary_flag(settings, key, value):\n"
+                "    existed = key in settings\n"
+                "    previous = settings.get(key)\n"
+                "    settings[key] = value\n"
+                "    try:\n"
+                "        yield\n"
+                "    finally:\n"
+                "        if existed:\n"
+                "            settings[key] = previous\n"
+                "        else:\n"
+                "            del settings[key]\n"
+            ),
+            "check": """\
+log = []
+
+@audit(log)
+def divide(a, b):
+    return a / b
+
+assert divide(6, 3) == 2, "The wrapped function must still return its result."
+try:
+    divide(1, 0)
+except ZeroDivisionError:
+    pass
+else:
+    raise AssertionError("The error must still propagate out of the decorated function.")
+assert log == [("divide", "ok"), ("divide", "error")], f"log should be [('divide', 'ok'), ('divide', 'error')] but is {log!r}."
+assert divide.__name__ == "divide", "Use functools.wraps so the function keeps its name."
+
+other_log = []
+
+@audit(other_log)
+def ping():
+    return "pong"
+
+assert ping() == "pong" and other_log == [("ping", "ok")] and len(log) == 2, "Each audit(log) decorator must write to its own log."
+
+settings = {"debug": False}
+with temporary_flag(settings, "debug", True):
+    assert settings["debug"] is True, "Inside the block the new value must be set."
+assert settings == {"debug": False}, f"The old value must be restored afterwards, but settings is {settings!r}."
+
+with temporary_flag(settings, "trace", 1):
+    assert settings["trace"] == 1, "A brand-new key must be set inside the block."
+assert settings == {"debug": False}, f"A key that didn't exist before must be removed afterwards, but settings is {settings!r}."
+
+try:
+    with temporary_flag(settings, "debug", "temporary"):
+        raise RuntimeError("boom")
+except RuntimeError:
+    pass
+else:
+    raise AssertionError("Errors inside the with block must propagate.")
+assert settings == {"debug": False}, "The value must be restored even when an error happens inside the block."
+""",
+        },
+    },
     # ------------------------------------------------------------------ secure-classes
     {
         "id": "secure-classes",
@@ -2901,6 +3520,525 @@ for url in allowed:
     assert check_url(url) is True, f"{url!r} should be allowed (True)."
 for url in blocked:
     assert check_url(url) is False, f"{url!r} should be rejected (False)."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ encoding
+    {
+        "id": "encoding",
+        "title": "Encoding, Bytes & Base64",
+        "summary": "Understand text vs bytes, why encoding is not encryption, and how lookalike characters fool people.",
+        "blocks": [
+            p(
+                "Computers store **bytes**: numbers from 0 to 255. Text becomes bytes through an **encoding**, almost always "
+                "**UTF-8**. Python keeps the two apart: `str` is text and `bytes` is raw data."
+            ),
+            code(
+                """\
+text = "héllo"
+data = text.encode("utf-8")
+
+print(data)
+print(len(text), len(data))
+print(data.decode("utf-8"))"""
+            ),
+            out(
+                r"""b'h\xc3\xa9llo'
+5 6
+héllo"""
+            ),
+            p("`é` is one character but two bytes in UTF-8, so the byte length can differ from the text length. That matters when you check sizes and limits."),
+            code(
+                """\
+data = b"Hi!"
+print(list(data))
+print(data.hex())
+print(bytes.fromhex("486921"))"""
+            ),
+            out(
+                """\
+[72, 105, 33]
+486921
+b'Hi!'"""
+            ),
+            h("Base64"),
+            p("**Base64** turns any bytes into plain letters and digits so they can travel through text-only places such as email, URLs and HTTP headers."),
+            code(
+                r"""import base64
+
+encoded = base64.b64encode(b"admin:secret")
+print(encoded)
+print(base64.b64decode(encoded))
+print(base64.urlsafe_b64encode(b"\xfb\xff").decode())"""
+            ),
+            out(
+                """\
+b'YWRtaW46c2VjcmV0'
+b'admin:secret'
+-_8="""
+            ),
+            sec(
+                "**Encoding is not encryption.** Base64 and hex hide nothing: anyone can reverse them in one line. "
+                "`YWRtaW46c2VjcmV0` is simply `admin:secret`. That is exactly how HTTP Basic authentication sends credentials, "
+                "which is why it is only safe over HTTPS."
+            ),
+            h("URL encoding"),
+            code(
+                """\
+from urllib.parse import quote, unquote
+
+print(quote("a b&c=d/é"))
+print(quote("a b&c=d/é", safe=""))
+print(unquote("%3Cscript%3E"))"""
+            ),
+            out(
+                """\
+a%20b%26c%3Dd/%C3%A9
+a%20b%26c%3Dd%2F%C3%A9
+<script>"""
+            ),
+            p("Special characters travel as `%` and two hex digits. Encoded input can hide dangerous text, so **decode first, then check**."),
+            code(
+                """\
+from urllib.parse import unquote
+
+path = "/files/%2e%2e/%2e%2e/etc/passwd"
+decoded = unquote(path)
+
+print(decoded)
+print(".." in decoded)
+print(".." in path)"""
+            ),
+            out(
+                """\
+/files/../../etc/passwd
+True
+False"""
+            ),
+            sec("A check that looks for `..` in the raw text misses `%2e%2e`. Always **decode (and normalise) input before validating it**, and validate again at the point where it is used. This is a classic path-traversal bug."),
+            h("Lookalike characters"),
+            p(
+                "Unicode contains thousands of characters that look identical to ordinary letters. Below, the first letter of "
+                "`fake` is the **Cyrillic** \"а\", not the Latin \"a\"."
+            ),
+            code(
+                """\
+import unicodedata
+
+real = "admin"
+fake = "аdmin"      # the first letter is Cyrillic, not Latin
+
+print(real == fake)
+print(fake.isascii())
+print(unicodedata.name(fake[0]))
+print(unicodedata.normalize("NFKC", "ｆｕｌｌ"))"""
+            ),
+            out(
+                """\
+False
+False
+CYRILLIC SMALL LETTER A
+full"""
+            ),
+            p("`isascii()` catches non-ASCII characters, and `unicodedata.normalize(\"NFKC\", ...)` converts \"compatibility\" forms (like the full-width letters above) into their plain equivalents."),
+            sec("**Homograph attacks**: an account named `аdmin` (Cyrillic) can impersonate `admin`. Restrict usernames to an allow-list of characters, normalise before comparing, and reject anything else."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write `decode_basic_auth(header)` for an HTTP `Authorization` header like `Basic YWRtaW46c2VjcmV0`. Return the "
+                "tuple `(username, password)`. The scheme name is case-insensitive. Split at the **first** colon only "
+                "(passwords may contain colons). For anything malformed (wrong scheme, missing token, invalid Base64, no colon, "
+                "bytes that aren't valid UTF-8, or a value that isn't text) return `None`. It must **never raise**."
+            ),
+            "starter": "import base64\n\n\ndef decode_basic_auth(header):\n    pass\n",
+            "hint": "`scheme, _, token = header.partition(\" \")`. Decode with `base64.b64decode(token, validate=True).decode(\"utf-8\")` inside `try`/`except ValueError` (both a bad Base64 string and bad UTF-8 raise a ValueError). Then `decoded.partition(\":\")` splits at the first colon.",
+            "solution": (
+                "import base64\n\n\n"
+                "def decode_basic_auth(header):\n"
+                "    if not isinstance(header, str):\n"
+                "        return None\n"
+                '    scheme, _, token = header.partition(" ")\n'
+                '    if scheme.lower() != "basic" or not token:\n'
+                "        return None\n"
+                "    try:\n"
+                '        decoded = base64.b64decode(token.strip(), validate=True).decode("utf-8")\n'
+                "    except ValueError:\n"
+                "        return None\n"
+                '    user, separator, password = decoded.partition(":")\n'
+                "    if not separator:\n"
+                "        return None\n"
+                "    return (user, password)\n"
+            ),
+            "check": """\
+import base64 as real_base64
+
+def header(raw, scheme="Basic"):
+    return f"{scheme} " + real_base64.b64encode(raw).decode()
+
+assert decode_basic_auth(header(b"admin:secret")) == ("admin", "secret"), "A normal header should decode to ('admin', 'secret')."
+assert decode_basic_auth(header(b"ada:pa:ss")) == ("ada", "pa:ss"), "Split at the FIRST colon only: the password is 'pa:ss'."
+assert decode_basic_auth(header(b"admin:secret", scheme="basic")) == ("admin", "secret"), "The scheme name is case-insensitive."
+assert decode_basic_auth(header("zo\\u00eb:p\\u00e4ss".encode("utf-8"))) == ("zo\\u00eb", "p\\u00e4ss"), "UTF-8 text should decode properly."
+bad = [
+    "", "Basic", "Basic ", "Bearer abc123", "Basic !!!not-base64!!!", "Basic YWRtaW4",
+    header(b"no-colon-here"), header(b"\\xff\\xfe:pw"), "Basicc " + real_base64.b64encode(b"a:b").decode(),
+    "Basic YWRt*aW46c2VjcmV0", "Basic YWRtaW46 c2VjcmV0",   # a valid header with a stray character/space inside
+    None, 42, b"Basic YTpi",
+]
+for value in bad:
+    try:
+        result = decode_basic_auth(value)
+    except Exception as error:
+        raise AssertionError(f"decode_basic_auth({value!r}) must not raise, but raised {type(error).__name__}: {error}") from None
+    assert result is None, f"decode_basic_auth({value!r}) should return None but returned {result!r}."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ integrity
+    {
+        "id": "integrity",
+        "title": "Integrity: Hashes, HMAC & Tamper-Evident Logs",
+        "summary": "Detect changes to files and records, and prove a message wasn't forged.",
+        "blocks": [
+            p(
+                "**Integrity** means data hasn't been changed. A hash is a fingerprint of the data, so if the fingerprint "
+                "still matches, the data is unchanged. Big files are hashed in **chunks** so they never have to fit in memory."
+            ),
+            code(
+                """\
+import hashlib
+
+with open("data.bin", "wb") as file:
+    file.write(b"hello " * 1000)
+
+digest = hashlib.sha256()
+with open("data.bin", "rb") as file:
+    while chunk := file.read(1024):
+        digest.update(chunk)
+
+print(digest.hexdigest() == hashlib.sha256(b"hello " * 1000).hexdigest())
+print(len(digest.hexdigest()))"""
+            ),
+            out(
+                """\
+True
+64"""
+            ),
+            p("`while chunk := file.read(1024)` reads a piece, stores it in `chunk`, and keeps looping until the file is empty. `mode=\"rb\"` reads raw bytes."),
+            warn("**MD5 and SHA-1 are broken** for security use: attackers can craft two different files with the same hash. Use SHA-256 or better."),
+            h("Verifying a download"),
+            p("Publishers list the expected hash of a file. Compute it yourself and compare with `hmac.compare_digest`."),
+            code(
+                """\
+import hashlib
+import hmac
+
+expected = hashlib.sha256(b"installer-bytes").hexdigest()
+
+def verify(data, expected_hex):
+    actual = hashlib.sha256(data).hexdigest()
+    return hmac.compare_digest(actual, expected_hex)
+
+print(verify(b"installer-bytes", expected))
+print(verify(b"installer-bytes!", expected))"""
+            ),
+            out(
+                """\
+True
+False"""
+            ),
+            p("A hash alone can't stop a clever attacker: they can change the file **and** recompute the hash. What proves *who* made something is a **secret key**."),
+            h("HMAC"),
+            p("An **HMAC** mixes a secret key into the hash. Only someone who knows the key can create a valid tag, so it proves the message is authentic **and** unaltered."),
+            code(
+                """\
+import hashlib
+import hmac
+
+key = b"shared-secret-key"
+message = b"transfer 100 to bob"
+tag = hmac.new(key, message, hashlib.sha256).hexdigest()
+
+print(tag[:16])
+
+same = hmac.new(key, message, hashlib.sha256).hexdigest()
+forged = hmac.new(b"wrong-key", message, hashlib.sha256).hexdigest()
+tampered = hmac.new(key, b"transfer 900 to bob", hashlib.sha256).hexdigest()
+
+print(hmac.compare_digest(tag, same))
+print(hmac.compare_digest(tag, forged))
+print(hmac.compare_digest(tag, tampered))"""
+            ),
+            out(
+                """\
+c3e2b5cb52e9b0f6
+True
+False
+False"""
+            ),
+            sec("Use an HMAC to protect anything you hand to a user and later trust when it comes back (session tokens, download links, form fields): if the tag doesn't match, someone edited it."),
+            h("Hash chains"),
+            p(
+                "A **hash chain** links records: each entry's hash includes the **previous** entry's hash. Changing any old record "
+                "changes its hash, which changes the next hash, and so on, so every later hash stops matching."
+            ),
+            code(
+                """\
+import hashlib
+
+def link(previous_hash, record):
+    return hashlib.sha256((previous_hash + record).encode()).hexdigest()
+
+records = ["login ada", "delete file", "logout ada"]
+
+previous = "0" * 64
+for record in records:
+    previous = link(previous, record)
+original_head = previous
+print(original_head[:12])
+
+records[1] = "read file"        # someone edits history...
+previous = "0" * 64
+for record in records:
+    previous = link(previous, record)
+print(previous == original_head)"""
+            ),
+            out(
+                """\
+b660354d725e
+False"""
+            ),
+            sec(
+                "A hash chain makes tampering **evident**, not impossible: an attacker who can rewrite the whole log can recompute "
+                "the entire chain. So defenders also keep the latest hash (the \"head\") somewhere the attacker can't reach, "
+                "such as another server or write-once storage, and compare against it."
+            ),
+        ],
+        "exercise": {
+            "prompt": (
+                "Build a tamper-evident `AuditLog`. `entries` is a list of `(text, digest)` tuples. Each digest is `link(previous_digest, text)`, "
+                "where the first previous digest is `GENESIS`. `append(text)` adds an entry. The read-only property `head` is the "
+                "last digest (or `GENESIS` for an empty log). `verify()` recomputes the whole chain and returns `True` only if every "
+                "digest matches."
+            ),
+            "starter": (
+                "import hashlib\n\n"
+                'GENESIS = "0" * 64\n\n\n'
+                "def link(previous_hash, text):\n"
+                "    return hashlib.sha256((previous_hash + text).encode()).hexdigest()\n\n\n"
+                "class AuditLog:\n"
+                "    def __init__(self):\n"
+                "        self.entries = []\n\n"
+                "    # add: the head property, append(text) and verify()\n"
+            ),
+            "hint": "`head` is `self.entries[-1][1]` when there are entries, otherwise `GENESIS`. `append` stores `(text, link(self.head, text))`. `verify` starts with `previous = GENESIS` and for each `(text, digest)` checks `link(previous, text) == digest`, then sets `previous = digest`.",
+            "solution": (
+                "import hashlib\n\n"
+                'GENESIS = "0" * 64\n\n\n'
+                "def link(previous_hash, text):\n"
+                "    return hashlib.sha256((previous_hash + text).encode()).hexdigest()\n\n\n"
+                "class AuditLog:\n"
+                "    def __init__(self):\n"
+                "        self.entries = []\n\n"
+                "    @property\n"
+                "    def head(self):\n"
+                "        return self.entries[-1][1] if self.entries else GENESIS\n\n"
+                "    def append(self, text):\n"
+                "        self.entries.append((text, link(self.head, text)))\n\n"
+                "    def verify(self):\n"
+                "        previous = GENESIS\n"
+                "        for text, digest in self.entries:\n"
+                "            if link(previous, text) != digest:\n"
+                "                return False\n"
+                "            previous = digest\n"
+                "        return True\n"
+            ),
+            "check": """\
+def build():
+    log = AuditLog()
+    for text in ["login ada", "delete file", "logout ada"]:
+        log.append(text)
+    return log
+
+empty = AuditLog()
+assert empty.head == GENESIS, "An empty log's head should be GENESIS."
+assert empty.verify() is True, "An empty log is valid."
+
+log = build()
+assert len(log.entries) == 3 and log.entries[0][0] == "login ada", "entries should hold (text, digest) tuples in order."
+assert log.entries[0][1] == link(GENESIS, "login ada"), "The first digest is link(GENESIS, text)."
+assert log.entries[1][1] == link(log.entries[0][1], "delete file"), "Each digest is link(previous_digest, text)."
+assert log.head == log.entries[-1][1], "head should be the last digest."
+assert log.verify() is True, "An untouched log must verify."
+
+edited = build()
+edited.entries[1] = ("read file", edited.entries[1][1])
+assert edited.verify() is False, "Editing an entry's text must make verify() False."
+
+forged_digest = build()
+forged_digest.entries[2] = (forged_digest.entries[2][0], "f" * 64)
+assert forged_digest.verify() is False, "Replacing a digest must make verify() False."
+
+removed = build()
+del removed.entries[1]
+assert removed.verify() is False, "Deleting an entry from the middle must make verify() False."
+
+# An attacker who recomputes the WHOLE chain passes verify(), but the head changes, which is what defenders compare.
+attacker = build()
+anchor = attacker.head
+rewritten = AuditLog()
+for text in ["login ada", "read file", "logout ada"]:
+    rewritten.append(text)
+assert rewritten.verify() is True, "A correctly recomputed chain is internally consistent."
+assert rewritten.head != anchor, "But its head differs from the original head. That is how the tampering is caught."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ time-detection
+    {
+        "id": "time-detection",
+        "title": "Time-Based Detection",
+        "summary": "Work with dates and times, and spot attacks by how fast events happen.",
+        "blocks": [
+            p("Most attacks show up as a **rate**: too many events in too little time. First, dates and times in Python."),
+            code(
+                """\
+from datetime import datetime, timedelta
+
+stamp = datetime.strptime("2026-09-20 10:15:30", "%Y-%m-%d %H:%M:%S")
+print(stamp.year, stamp.hour)
+print(stamp + timedelta(minutes=5))
+print(stamp.strftime("%d %b %Y, %H:%M"))"""
+            ),
+            out(
+                """\
+2026 10
+2026-09-20 10:20:30
+20 Sep 2026, 10:15"""
+            ),
+            p("`strptime` **parses** text into a `datetime` using a format, `strftime` **formats** one back to text, and `timedelta` is an amount of time you can add or subtract."),
+            code(
+                """\
+from datetime import datetime, timedelta
+
+start = datetime(2026, 9, 20, 10, 0, 0)
+end = datetime(2026, 9, 20, 10, 4, 30)
+
+gap = end - start
+print(gap)
+print(gap.total_seconds())
+print(gap < timedelta(minutes=5))"""
+            ),
+            out(
+                """\
+0:04:30
+270.0
+True"""
+            ),
+            p("Subtracting two datetimes gives a `timedelta`, which you can compare, print or turn into seconds."),
+            h("Time zones"),
+            p("A **naive** datetime has no time zone; an **aware** one does. Python refuses to compare the two, which prevents a whole class of silent mistakes."),
+            code(
+                """\
+from datetime import datetime, timezone
+
+aware = datetime(2026, 9, 20, 10, 0, tzinfo=timezone.utc)
+naive = datetime(2026, 9, 20, 10, 0)
+
+print(aware.isoformat())
+try:
+    print(aware < naive)
+except TypeError:
+    print("cannot compare naive and aware")"""
+            ),
+            out(
+                """\
+2026-09-20T10:00:00+00:00
+cannot compare naive and aware"""
+            ),
+            sec("**Log in UTC**, always. When servers in different time zones log local times, events line up wrongly and an attack spread across machines can look like harmless, unrelated blips."),
+            h("A sliding window"),
+            p(
+                "To detect bursts, keep only the events from the last N seconds. A `deque` (double-ended queue) removes items "
+                "from the front quickly: add new events at the back, drop old ones from the front."
+            ),
+            code(
+                """\
+from collections import deque
+from datetime import datetime, timedelta
+
+def parse(text):
+    return datetime.strptime(text, "%H:%M:%S")
+
+WINDOW = timedelta(seconds=60)
+recent = deque()
+alerts = []
+
+for text in ["10:00:00", "10:00:20", "10:00:50", "10:02:00", "10:02:10"]:
+    moment = parse(text)
+    recent.append(moment)
+    while moment - recent[0] > WINDOW:
+        recent.popleft()
+    if len(recent) >= 3:
+        alerts.append(text)
+
+print(alerts)"""
+            ),
+            out("['10:00:50']"),
+            p("Three events fell within 60 seconds only at `10:00:50`. By `10:02:00` the early ones had aged out of the window."),
+            sec(
+                "**Rate-based rules** like \"5 failed logins from one address within a minute\" catch brute-force attacks "
+                "without flagging the person who mistypes a password once a day. Tune the limit and window to your normal traffic."
+            ),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write `burst_ips(events, limit, window_seconds)`. `events` is a list of `(timestamp, ip)` tuples in chronological "
+                "order, where `timestamp` looks like `\"2026-09-20 10:00:00\"`. Return a **sorted** list of every IP that had at least "
+                "`limit` events inside some window of `window_seconds` seconds (events exactly `window_seconds` apart still count as inside)."
+            ),
+            "starter": "from collections import defaultdict, deque\nfrom datetime import datetime, timedelta\n\n\ndef burst_ips(events, limit, window_seconds):\n    pass\n",
+            "hint": "Keep a `defaultdict(deque)` of recent times per IP. For each event: parse the timestamp with `datetime.strptime(stamp, \"%Y-%m-%d %H:%M:%S\")`, append it, pop from the left while `moment - times[0] > window`, and flag the IP when `len(times) >= limit`.",
+            "solution": (
+                "from collections import defaultdict, deque\nfrom datetime import datetime, timedelta\n\n\n"
+                "def burst_ips(events, limit, window_seconds):\n"
+                "    window = timedelta(seconds=window_seconds)\n"
+                "    recent = defaultdict(deque)\n"
+                "    flagged = set()\n"
+                "    for stamp, ip in events:\n"
+                '        moment = datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S")\n'
+                "        times = recent[ip]\n"
+                "        times.append(moment)\n"
+                "        while moment - times[0] > window:\n"
+                "            times.popleft()\n"
+                "        if len(times) >= limit:\n"
+                "            flagged.add(ip)\n"
+                "    return sorted(flagged)\n"
+            ),
+            "check": """\
+events = [
+    ("2026-09-20 10:00:00", "203.0.113.5"),
+    ("2026-09-20 10:00:05", "198.51.100.7"),
+    ("2026-09-20 10:00:10", "203.0.113.5"),
+    ("2026-09-20 10:00:20", "203.0.113.5"),
+    ("2026-09-20 10:01:00", "192.0.2.44"),
+    ("2026-09-20 10:01:30", "192.0.2.44"),
+    ("2026-09-20 10:02:00", "192.0.2.44"),
+    ("2026-09-20 10:05:05", "198.51.100.7"),
+    ("2026-09-20 10:10:05", "198.51.100.7"),
+]
+got = burst_ips(events, 3, 60)
+assert got == ["192.0.2.44", "203.0.113.5"], f"limit=3, window=60 should give ['192.0.2.44', '203.0.113.5'] (events exactly 60s apart count) but got {got!r}."
+assert burst_ips(events, 3, 59) == ["203.0.113.5"], f"With a 59-second window only 203.0.113.5 qualifies, got {burst_ips(events, 3, 59)!r}."
+assert burst_ips(events, 2, 10) == ["203.0.113.5"], f"limit=2, window=10 should give ['203.0.113.5'], got {burst_ips(events, 2, 10)!r}."
+assert burst_ips(events, 3, 3600) == ["192.0.2.44", "198.51.100.7", "203.0.113.5"], f"With a whole hour as the window, all three IPs have 3 events, got {burst_ips(events, 3, 3600)!r}."
+assert burst_ips(events, 4, 3600) == [], "No IP has 4 events, even within an hour."
+assert burst_ips([], 3, 60) == [], "No events, no bursts."
+across = [("2026-09-20 23:59:50", "10.9.9.9"), ("2026-09-21 00:00:05", "10.9.9.9"), ("2026-09-21 00:00:10", "10.9.9.9")]
+assert burst_ips(across, 3, 30) == ["10.9.9.9"], "Windows must work across midnight (compare full dates, not just times)."
+other_days = [("2026-09-19 10:00:00", "10.8.8.8"), ("2026-09-20 10:00:05", "10.8.8.8"), ("2026-09-21 10:00:10", "10.8.8.8")]
+assert burst_ips(other_days, 3, 30) == [], "Events on DIFFERENT days at the same time of day are a day apart, not seconds apart. Compare full dates."
+assert burst_ips(events, 3, 60) == got, "Calling the function twice must give the same answer (no leftover state)."
 """,
         },
     },

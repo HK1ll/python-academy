@@ -1,9 +1,10 @@
 # Python Academy
 
-An interactive web app for learning Python: 26 lessons (basics, modules and files,
-object-oriented programming through defensive-security examples, then regular expressions,
-log analysis, offline networking and a final Log Analyzer project), runnable examples,
-auto-checked exercises and a free Playground. Python runs **inside the learner's browser**
+An interactive web app for learning Python: 32 lessons in five sections (basics; modules and
+files; object-oriented programming; intermediate Python with generators and decorators;
+and programming for security: hashing, regular expressions, encoding, integrity, time-based
+detection and a final Log Analyzer project), runnable examples, auto-checked exercises and
+a free Playground. Python runs **inside the learner's browser**
 (Pyodide/WebAssembly in a Web Worker), so there is no server that executes code.
 
 ## Run it
