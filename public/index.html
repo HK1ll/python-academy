@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- Same policy server.py sends as a header (minus frame-ancestors, which meta can't carry), so the
+       app stays locked down on static hosts such as GitHub Pages. A test keeps the two in sync. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; require-trusted-types-for 'script'; trusted-types python-academy-worker">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Learn Python with short interactive lessons. Your code runs privately in your browser.">
+  <meta name="referrer" content="no-referrer">
+  <title>Python Academy</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a id="skip-link" class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <button id="menu-toggle" class="btn ghost menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Lessons</button>
+    <a class="brand" href="#/"><span aria-hidden="true">🐍</span> Python Academy</a>
+    <div id="engine-slot"></div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Lessons" data-open="false"></nav>
+    <main id="main" tabindex="-1">
+      <p class="loading">Loading…</p>
+      <noscript><p class="card">Python Academy needs JavaScript (and WebAssembly) to run Python in your browser. Nothing is sent to a server.</p></noscript>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p class="muted small">Your code runs only in your browser. Progress is stored only on this device.</p>
+    <div id="footer-slot"></div>
+  </footer>
+</body>
+</html>

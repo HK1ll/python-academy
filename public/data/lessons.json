@@ -1,0 +1,1577 @@
+{
+ "lessons": [
+  {
+   "id": "hello-world",
+   "title": "Hello, World!",
+   "summary": "Write your first program and meet print().",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Every programmer starts by making the computer say something. In Python that takes one line."
+    },
+    {
+     "type": "code",
+     "text": "print(\"Hello, World!\")"
+    },
+    {
+     "type": "output",
+     "text": "Hello, World!"
+    },
+    {
+     "type": "p",
+     "text": "`print()` is a **function**: you hand it something inside the parentheses and it shows it on the screen. Text wrapped in quotes is called a **string**. Single `'` and double `\"` quotes both work."
+    },
+    {
+     "type": "code",
+     "text": "print(\"Learning Python is fun\")\nprint('Single quotes work too')\nprint(\"Numbers need no quotes:\", 42)"
+    },
+    {
+     "type": "output",
+     "text": "Learning Python is fun\nSingle quotes work too\nNumbers need no quotes: 42"
+    },
+    {
+     "type": "h",
+     "text": "Comments"
+    },
+    {
+     "type": "p",
+     "text": "Anything after a `#` is a **comment**. Python ignores it, so use comments to leave notes for humans."
+    },
+    {
+     "type": "code",
+     "text": "# This whole line is a comment\nprint(\"Comments are ignored\")  # even at the end of a line"
+    },
+    {
+     "type": "output",
+     "text": "Comments are ignored"
+    },
+    {
+     "type": "warn",
+     "text": "Python is case-sensitive: `Print` and `print` are different names, and only `print` exists."
+    }
+   ],
+   "exercise": {
+    "prompt": "Print exactly `Hello, Python!` on the screen.",
+    "starter": "# Write your code below\n",
+    "hint": "Use `print()` with the text inside quotes. Watch the comma, the capital letters and the exclamation mark.",
+    "solution": "print(\"Hello, Python!\")\n",
+    "check": "got = _output.strip()\nassert got == \"Hello, Python!\", f\"Your program printed {got!r}, but we expected 'Hello, Python!'.\"\n"
+   }
+  },
+  {
+   "id": "variables",
+   "title": "Variables & Types",
+   "summary": "Give values names and learn the basic data types.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **variable** is a name that points to a value. You create one with `=`."
+    },
+    {
+     "type": "code",
+     "text": "name = \"Ada\"\nage = 36\nprint(name)\nprint(age)"
+    },
+    {
+     "type": "output",
+     "text": "Ada\n36"
+    },
+    {
+     "type": "p",
+     "text": "Names can contain letters, digits and underscores, but cannot start with a digit. Python style is `snake_case`, like `total_price`."
+    },
+    {
+     "type": "h",
+     "text": "Types"
+    },
+    {
+     "type": "p",
+     "text": "Every value has a **type**. Use `type()` to see it."
+    },
+    {
+     "type": "code",
+     "text": "city = \"Paris\"      # str    (text)\nyear = 2024         # int    (whole number)\nheight = 1.75       # float  (decimal number)\nis_open = True      # bool   (True or False)\nprint(type(city))\nprint(type(year))\nprint(type(height))\nprint(type(is_open))"
+    },
+    {
+     "type": "output",
+     "text": "<class 'str'>\n<class 'int'>\n<class 'float'>\n<class 'bool'>"
+    },
+    {
+     "type": "h",
+     "text": "f-strings"
+    },
+    {
+     "type": "p",
+     "text": "Put an `f` before the opening quote and write variables inside `{ }` to build text."
+    },
+    {
+     "type": "code",
+     "text": "name = \"Ada\"\nage = 36\nprint(f\"{name} is {age} years old\")"
+    },
+    {
+     "type": "output",
+     "text": "Ada is 36 years old"
+    },
+    {
+     "type": "tip",
+     "text": "Variables can be reassigned any time: `age = age + 1` makes `age` one bigger."
+    }
+   ],
+   "exercise": {
+    "prompt": "Create a variable `language` holding the string `\"Python\"` and a variable `year` holding the integer `1991`. Then use an f-string to print `Python was released in 1991`.",
+    "starter": "# Create the variables here\n\n# Print the sentence here\n",
+    "hint": "Write `language = \"Python\"` and `year = 1991`, then `print(f\"{language} was released in {year}\")`.",
+    "solution": "language = \"Python\"\nyear = 1991\nprint(f\"{language} was released in {year}\")\n",
+    "check": "assert \"language\" in globals(), \"Create a variable called language.\"\nassert language == \"Python\", \"language should be the string 'Python'.\"\nassert \"year\" in globals(), \"Create a variable called year.\"\nassert year == 1991 and isinstance(year, int), \"year should be the whole number 1991 (no quotes).\"\ngot = _output.strip()\nassert got == \"Python was released in 1991\", f\"Expected the output 'Python was released in 1991' but got {got!r}.\"\n"
+   }
+  },
+  {
+   "id": "numbers",
+   "title": "Numbers & Math",
+   "summary": "Use Python as a powerful calculator.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Python understands the usual arithmetic operators, plus a few extras."
+    },
+    {
+     "type": "code",
+     "text": "print(7 + 3)     # addition\nprint(7 - 3)     # subtraction\nprint(7 * 3)     # multiplication\nprint(7 / 2)     # division (always gives a float)\nprint(7 // 2)    # floor division (drops the decimals)\nprint(7 % 2)     # remainder (modulo)\nprint(2 ** 10)   # power"
+    },
+    {
+     "type": "output",
+     "text": "10\n4\n21\n3.5\n3\n1\n1024"
+    },
+    {
+     "type": "p",
+     "text": "Python follows the normal order of operations. Use parentheses to make your intent clear."
+    },
+    {
+     "type": "code",
+     "text": "print(2 + 3 * 4)\nprint((2 + 3) * 4)"
+    },
+    {
+     "type": "output",
+     "text": "14\n20"
+    },
+    {
+     "type": "h",
+     "text": "Handy functions"
+    },
+    {
+     "type": "code",
+     "text": "print(round(3.14159, 2))\nprint(abs(-5))\nprint(int(\"42\") + 1)\nprint(float(\"2.5\") * 2)"
+    },
+    {
+     "type": "output",
+     "text": "3.14\n5\n43\n5.0"
+    },
+    {
+     "type": "tip",
+     "text": "Shortcuts like `score += 5` mean `score = score + 5`. There are also `-=`, `*=` and `/=`."
+    },
+    {
+     "type": "code",
+     "text": "score = 10\nscore += 5\nprint(score)"
+    },
+    {
+     "type": "output",
+     "text": "15"
+    }
+   ],
+   "exercise": {
+    "prompt": "A pizza costs `12.5`. Store that in `price`. Work out `total`: the cost of **4** pizzas plus a delivery fee of `3`. Print `total`.",
+    "starter": "price = \n\n# Calculate total here\n\n# Print it here\n",
+    "hint": "`total = price * 4 + 3` — multiplication happens before addition.",
+    "solution": "price = 12.5\ntotal = price * 4 + 3\nprint(total)\n",
+    "check": "assert price == 12.5, \"price should be 12.5.\"\nassert total == 53.0, f\"total should be 53.0 (4 pizzas plus delivery) but it is {total}.\"\nassert _output.strip() in (\"53.0\", \"53\"), f\"Print the total: expected 53.0 but the output was {_output.strip()!r}.\"\n"
+   }
+  },
+  {
+   "id": "strings",
+   "title": "Working with Strings",
+   "summary": "Slice, transform and combine text.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Strings can be joined with `+`, repeated with `*`, and measured with `len()`."
+    },
+    {
+     "type": "code",
+     "text": "first = \"Grace\"\nlast = \"Hopper\"\nfull = first + \" \" + last\nprint(full)\nprint(len(full))\nprint(\"ha\" * 3)"
+    },
+    {
+     "type": "output",
+     "text": "Grace Hopper\n12\nhahaha"
+    },
+    {
+     "type": "h",
+     "text": "Indexing and slicing"
+    },
+    {
+     "type": "p",
+     "text": "Each character has a position, starting at **0**. Negative numbers count from the end. A slice `[start:stop]` includes `start` but stops *before* `stop`."
+    },
+    {
+     "type": "code",
+     "text": "word = \"Python\"\nprint(word[0])\nprint(word[-1])\nprint(word[0:2])\nprint(word[2:])"
+    },
+    {
+     "type": "output",
+     "text": "P\nn\nPy\nthon"
+    },
+    {
+     "type": "h",
+     "text": "String methods"
+    },
+    {
+     "type": "code",
+     "text": "text = \"  Hello, World  \"\nprint(text.strip())\nprint(text.strip().upper())\nprint(text.strip().replace(\"World\", \"Python\"))\nprint(\"a,b,c\".split(\",\"))\nprint(\"-\".join([\"x\", \"y\", \"z\"]))"
+    },
+    {
+     "type": "output",
+     "text": "Hello, World\nHELLO, WORLD\nHello, Python\n['a', 'b', 'c']\nx-y-z"
+    },
+    {
+     "type": "p",
+     "text": "Methods can be **chained**: `text.strip().upper()` strips first, then upper-cases the result."
+    },
+    {
+     "type": "warn",
+     "text": "Strings are **immutable**: methods like `upper()` return a new string; they never change the original."
+    }
+   ],
+   "exercise": {
+    "prompt": "`sentence` is given below with messy spaces and lowercase letters. Create `clean` by removing the spaces around it and capitalising each word (`Python Is Awesome`). Print `clean`.",
+    "starter": "sentence = \"  python is awesome  \"\n\n# Create clean here\n\n# Print it here\n",
+    "hint": "Chain two string methods: `.strip()` removes surrounding spaces and `.title()` capitalises every word.",
+    "solution": "sentence = \"  python is awesome  \"\nclean = sentence.strip().title()\nprint(clean)\n",
+    "check": "assert \"clean\" in globals(), \"Create a variable called clean.\"\nassert clean == \"Python Is Awesome\", f\"clean is {clean!r} but should be 'Python Is Awesome'.\"\nassert _output.strip() == \"Python Is Awesome\", \"Print clean so it shows on the screen.\"\n"
+   }
+  },
+  {
+   "id": "conditionals",
+   "title": "Making Decisions",
+   "summary": "Compare values and choose what runs with if / elif / else.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Comparisons produce **booleans** (`True` or `False`): `==`, `!=`, `<`, `>`, `<=`, `>=`."
+    },
+    {
+     "type": "code",
+     "text": "print(5 > 3)\nprint(5 == 6)\nprint(\"a\" != \"b\")"
+    },
+    {
+     "type": "output",
+     "text": "True\nFalse\nTrue"
+    },
+    {
+     "type": "p",
+     "text": "An `if` statement runs its block only when the condition is true. The block is **indented** (4 spaces) and the line before it ends with a colon."
+    },
+    {
+     "type": "code",
+     "text": "temperature = 25\n\nif temperature > 30:\n    print(\"It's hot\")\nelif temperature > 15:\n    print(\"It's nice\")\nelse:\n    print(\"It's cold\")"
+    },
+    {
+     "type": "output",
+     "text": "It's nice"
+    },
+    {
+     "type": "h",
+     "text": "Combining conditions"
+    },
+    {
+     "type": "p",
+     "text": "Use `and`, `or` and `not` to combine tests."
+    },
+    {
+     "type": "code",
+     "text": "age = 20\nhas_ticket = True\n\nif age >= 18 and has_ticket:\n    print(\"Welcome in!\")"
+    },
+    {
+     "type": "output",
+     "text": "Welcome in!"
+    },
+    {
+     "type": "warn",
+     "text": "`=` **assigns** a value, `==` **compares** two values. Mixing them up is a classic bug."
+    },
+    {
+     "type": "h",
+     "text": "Reading input"
+    },
+    {
+     "type": "p",
+     "text": "`input()` reads a line typed by the user and returns it as a string. Wrap it in `int()` to get a number. In this app, type the answers into the **Input** box below the editor."
+    }
+   ],
+   "exercise": {
+    "prompt": "The program reads a score. Print a grade letter: `A` for 90 or more, `B` for 80–89, `C` for 70–79, otherwise `F`. (Sample input `85` is already in the Input box; the checker will try several other scores.)",
+    "starter": "score = int(input())\n\n# Print A, B, C or F\n",
+    "hint": "Test from the highest grade down: `if score >= 90:` then `elif score >= 80:` and so on, ending with `else:`.",
+    "solution": "score = int(input())\n\nif score >= 90:\n    print(\"A\")\nelif score >= 80:\n    print(\"B\")\nelif score >= 70:\n    print(\"C\")\nelse:\n    print(\"F\")\n",
+    "check": "cases = [(\"95\", \"A\"), (\"90\", \"A\"), (\"89\", \"B\"), (\"85\", \"B\"), (\"80\", \"B\"), (\"72\", \"C\"), (\"70\", \"C\"), (\"69\", \"F\"), (\"40\", \"F\")]\nfor score_text, expected in cases:\n    got = run_again(score_text).strip()\n    assert got == expected, f\"For a score of {score_text} we expected {expected!r} but your program printed {got!r}.\"\n",
+    "stdin": "85"
+   }
+  },
+  {
+   "id": "lists",
+   "title": "Lists",
+   "summary": "Store and manage collections of items.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **list** holds many values in order. Create one with square brackets."
+    },
+    {
+     "type": "code",
+     "text": "fruits = [\"apple\", \"banana\", \"cherry\"]\nprint(fruits)\nprint(fruits[0])\nprint(len(fruits))"
+    },
+    {
+     "type": "output",
+     "text": "['apple', 'banana', 'cherry']\napple\n3"
+    },
+    {
+     "type": "h",
+     "text": "Changing a list"
+    },
+    {
+     "type": "p",
+     "text": "Lists are **mutable**: you can add, replace and remove items."
+    },
+    {
+     "type": "code",
+     "text": "fruits = [\"apple\", \"banana\", \"cherry\"]\nfruits.append(\"mango\")\nfruits[1] = \"blueberry\"\nfruits.remove(\"apple\")\nprint(fruits)"
+    },
+    {
+     "type": "output",
+     "text": "['blueberry', 'cherry', 'mango']"
+    },
+    {
+     "type": "h",
+     "text": "Useful helpers"
+    },
+    {
+     "type": "code",
+     "text": "numbers = [5, 2, 9, 1]\nprint(sorted(numbers))\nprint(max(numbers), min(numbers))\nprint(sum(numbers))\nprint(9 in numbers)"
+    },
+    {
+     "type": "output",
+     "text": "[1, 2, 5, 9]\n9 1\n17\nTrue"
+    },
+    {
+     "type": "tip",
+     "text": "Slicing works just like strings: `numbers[1:3]` gives the items at positions 1 and 2."
+    }
+   ],
+   "exercise": {
+    "prompt": "Start with `colors = [\"red\", \"green\"]`. Add `\"blue\"` to the end, remove `\"red\"`, then print the list.",
+    "starter": "colors = [\"red\", \"green\"]\n\n# Change the list here\n\nprint(colors)\n",
+    "hint": "`colors.append(...)` adds to the end and `colors.remove(...)` deletes the first match.",
+    "solution": "colors = [\"red\", \"green\"]\ncolors.append(\"blue\")\ncolors.remove(\"red\")\nprint(colors)\n",
+    "check": "assert colors == [\"green\", \"blue\"], f\"colors is {colors} but should be ['green', 'blue'].\"\nassert _output.strip() == \"['green', 'blue']\", \"Print the list at the end.\"\n"
+   }
+  },
+  {
+   "id": "loops",
+   "title": "Loops",
+   "summary": "Repeat work with for and while.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A `for` loop runs its block once for every item in a collection."
+    },
+    {
+     "type": "code",
+     "text": "for fruit in [\"apple\", \"banana\"]:\n    print(fruit)\n\nfor i in range(3):\n    print(i)"
+    },
+    {
+     "type": "output",
+     "text": "apple\nbanana\n0\n1\n2"
+    },
+    {
+     "type": "p",
+     "text": "`range(start, stop, step)` produces numbers; `stop` is not included."
+    },
+    {
+     "type": "code",
+     "text": "for n in range(2, 11, 4):\n    print(n)"
+    },
+    {
+     "type": "output",
+     "text": "2\n6\n10"
+    },
+    {
+     "type": "h",
+     "text": "while loops"
+    },
+    {
+     "type": "p",
+     "text": "A `while` loop repeats as long as its condition stays true."
+    },
+    {
+     "type": "code",
+     "text": "count = 3\nwhile count > 0:\n    print(count)\n    count -= 1\nprint(\"Liftoff!\")"
+    },
+    {
+     "type": "output",
+     "text": "3\n2\n1\nLiftoff!"
+    },
+    {
+     "type": "h",
+     "text": "break and continue"
+    },
+    {
+     "type": "p",
+     "text": "`continue` skips to the next round; `break` leaves the loop entirely."
+    },
+    {
+     "type": "code",
+     "text": "for n in range(1, 10):\n    if n % 2 == 0:\n        continue\n    if n > 7:\n        break\n    print(n)"
+    },
+    {
+     "type": "output",
+     "text": "1\n3\n5\n7"
+    },
+    {
+     "type": "warn",
+     "text": "A loop whose condition never becomes false runs forever. Don't worry: this app automatically stops any program that runs longer than 10 seconds."
+    }
+   ],
+   "exercise": {
+    "prompt": "**FizzBuzz**: print the numbers from 1 to 15, one per line. But print `Fizz` for multiples of 3, `Buzz` for multiples of 5, and `FizzBuzz` for multiples of both.",
+    "starter": "for number in range(1, 16):\n    # Decide what to print\n    pass\n",
+    "hint": "Test the multiple-of-both case first: `if number % 15 == 0:`, then `elif number % 3 == 0:`, then `elif number % 5 == 0:`, else print the number.",
+    "solution": "for number in range(1, 16):\n    if number % 15 == 0:\n        print(\"FizzBuzz\")\n    elif number % 3 == 0:\n        print(\"Fizz\")\n    elif number % 5 == 0:\n        print(\"Buzz\")\n    else:\n        print(number)\n",
+    "check": "expected = [\"1\", \"2\", \"Fizz\", \"4\", \"Buzz\", \"Fizz\", \"7\", \"8\", \"Fizz\", \"Buzz\", \"11\", \"Fizz\", \"13\", \"14\", \"FizzBuzz\"]\ngot = _output.split()\nfor position, (want, have) in enumerate(zip(expected, got), start=1):\n    assert want == have, f\"Line {position} should be {want!r} but your program printed {have!r}.\"\nassert len(got) == len(expected), f\"Expected {len(expected)} lines of output but got {len(got)}.\"\n"
+   }
+  },
+  {
+   "id": "dictionaries",
+   "title": "Dictionaries",
+   "summary": "Look things up by key.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **dictionary** stores **key: value** pairs, like a real dictionary maps a word to its meaning."
+    },
+    {
+     "type": "code",
+     "text": "person = {\"name\": \"Ada\", \"age\": 36}\nprint(person[\"name\"])\nperson[\"city\"] = \"London\"\nprint(person)\nprint(person.get(\"email\", \"unknown\"))"
+    },
+    {
+     "type": "output",
+     "text": "Ada\n{'name': 'Ada', 'age': 36, 'city': 'London'}\nunknown"
+    },
+    {
+     "type": "p",
+     "text": "`.get(key, default)` is the safe way to look something up: it returns the default instead of an error when the key is missing."
+    },
+    {
+     "type": "h",
+     "text": "Looping over a dictionary"
+    },
+    {
+     "type": "code",
+     "text": "person = {\"name\": \"Ada\", \"age\": 36}\nfor key, value in person.items():\n    print(key, \"->\", value)\nprint(\"age\" in person)"
+    },
+    {
+     "type": "output",
+     "text": "name -> Ada\nage -> 36\nTrue"
+    },
+    {
+     "type": "h",
+     "text": "Example: counting words"
+    },
+    {
+     "type": "code",
+     "text": "text = \"to be or not to be\"\ncounts = {}\nfor word in text.split():\n    counts[word] = counts.get(word, 0) + 1\nprint(counts)"
+    },
+    {
+     "type": "output",
+     "text": "{'to': 2, 'be': 2, 'or': 1, 'not': 1}"
+    },
+    {
+     "type": "tip",
+     "text": "Keys must be unchangeable values such as strings, numbers or tuples. Values can be anything."
+    }
+   ],
+   "exercise": {
+    "prompt": "Build a dictionary `counts` that maps each word in `text` to how many times it appears. Then print how many times `\"the\"` appears.",
+    "starter": "text = \"the cat and the hat and the bat\"\n\n# Build counts here\n\n# Print how many times \"the\" appears\n",
+    "hint": "Loop over `text.split()` and use `counts[word] = counts.get(word, 0) + 1`.",
+    "solution": "text = \"the cat and the hat and the bat\"\ncounts = {}\nfor word in text.split():\n    counts[word] = counts.get(word, 0) + 1\nprint(counts[\"the\"])\n",
+    "check": "expected = {\"the\": 3, \"cat\": 1, \"and\": 2, \"hat\": 1, \"bat\": 1}\nassert counts == expected, f\"counts is {counts} but should be {expected}.\"\nassert _output.strip() == \"3\", f\"Print how many times 'the' appears (3). Your output was {_output.strip()!r}.\"\n"
+   }
+  },
+  {
+   "id": "functions",
+   "title": "Functions",
+   "summary": "Package code you can reuse.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **function** is a named, reusable block of code. Define it with `def`, and send a result back with `return`."
+    },
+    {
+     "type": "code",
+     "text": "def greet(name):\n    return f\"Hello, {name}!\"\n\nmessage = greet(\"Ada\")\nprint(message)"
+    },
+    {
+     "type": "output",
+     "text": "Hello, Ada!"
+    },
+    {
+     "type": "h",
+     "text": "Default values"
+    },
+    {
+     "type": "code",
+     "text": "def power(base, exponent=2):\n    return base ** exponent\n\nprint(power(5))\nprint(power(2, 10))"
+    },
+    {
+     "type": "output",
+     "text": "25\n1024"
+    },
+    {
+     "type": "h",
+     "text": "Returning several values"
+    },
+    {
+     "type": "code",
+     "text": "def min_max(numbers):\n    return min(numbers), max(numbers)\n\nlow, high = min_max([3, 9, 1])\nprint(low, high)"
+    },
+    {
+     "type": "output",
+     "text": "1 9"
+    },
+    {
+     "type": "warn",
+     "text": "`print()` only *shows* a value. `return` *hands it back* so other code can use it. A function without `return` gives back `None`."
+    },
+    {
+     "type": "tip",
+     "text": "Put a short description in triple quotes on the first line of a function (a **docstring**) to document what it does."
+    }
+   ],
+   "exercise": {
+    "prompt": "Write two functions. `is_even(n)` returns `True` when `n` is even and `False` otherwise. `average(numbers)` returns the mean of a list of numbers.",
+    "starter": "def is_even(n):\n    pass\n\n\ndef average(numbers):\n    pass\n",
+    "hint": "A number is even when `n % 2 == 0`. The average is `sum(numbers) / len(numbers)`.",
+    "solution": "def is_even(n):\n    return n % 2 == 0\n\n\ndef average(numbers):\n    return sum(numbers) / len(numbers)\n",
+    "check": "assert is_even(4) is True, \"is_even(4) should return True.\"\nassert is_even(7) is False, \"is_even(7) should return False.\"\nassert is_even(0) is True, \"is_even(0) should return True.\"\nassert average([1, 2, 3, 4]) == 2.5, f\"average([1, 2, 3, 4]) should be 2.5 but returned {average([1, 2, 3, 4])!r}.\"\nassert average([10]) == 10, \"average([10]) should be 10.\"\n"
+   }
+  },
+  {
+   "id": "comprehensions",
+   "title": "Tuples, Sets & Comprehensions",
+   "summary": "More collection types and a compact way to build lists.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **tuple** is like a list that can't be changed. A **set** keeps only unique items."
+    },
+    {
+     "type": "code",
+     "text": "point = (3, 4)\nx, y = point\nprint(x, y)\n\nunique = set([1, 2, 2, 3, 3, 3])\nprint(unique)"
+    },
+    {
+     "type": "output",
+     "text": "3 4\n{1, 2, 3}"
+    },
+    {
+     "type": "h",
+     "text": "List comprehensions"
+    },
+    {
+     "type": "p",
+     "text": "A **list comprehension** builds a new list from another collection in a single line: `[expression for item in collection if condition]`."
+    },
+    {
+     "type": "code",
+     "text": "squares = [n * n for n in range(1, 6)]\nprint(squares)\n\nevens = [n for n in range(10) if n % 2 == 0]\nprint(evens)\n\nwords = [\"hi\", \"python\", \"code\"]\nprint([len(w) for w in words])"
+    },
+    {
+     "type": "output",
+     "text": "[1, 4, 9, 16, 25]\n[0, 2, 4, 6, 8]\n[2, 6, 4]"
+    },
+    {
+     "type": "p",
+     "text": "Dictionaries have comprehensions too."
+    },
+    {
+     "type": "code",
+     "text": "words = [\"hi\", \"python\", \"code\"]\nprint({w: len(w) for w in words})"
+    },
+    {
+     "type": "output",
+     "text": "{'hi': 2, 'python': 6, 'code': 4}"
+    },
+    {
+     "type": "tip",
+     "text": "If a comprehension gets hard to read, use a normal `for` loop. Clear code beats clever code."
+    }
+   ],
+   "exercise": {
+    "prompt": "Using list comprehensions, create `cubes` (the cubes of 1 to 5) and `long_words` (the words from `words` that have more than 4 letters). Print both lists.",
+    "starter": "words = [\"sky\", \"python\", \"code\", \"language\", \"fun\"]\n\n# cubes = ...\n# long_words = ...\n\nprint(cubes)\nprint(long_words)\n",
+    "hint": "`[n ** 3 for n in range(1, 6)]` and `[w for w in words if len(w) > 4]`.",
+    "solution": "words = [\"sky\", \"python\", \"code\", \"language\", \"fun\"]\ncubes = [n ** 3 for n in range(1, 6)]\nlong_words = [w for w in words if len(w) > 4]\nprint(cubes)\nprint(long_words)\n",
+    "check": "assert cubes == [1, 8, 27, 64, 125], f\"cubes is {cubes} but should be [1, 8, 27, 64, 125].\"\nassert long_words == [\"python\", \"language\"], f\"long_words is {long_words} but should be ['python', 'language'].\"\n"
+   }
+  },
+  {
+   "id": "errors",
+   "title": "Handling Errors",
+   "summary": "Read error messages and recover gracefully with try/except.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Errors are a normal part of programming. When something goes wrong Python prints a **traceback**. Read it from the bottom: the last line names the problem, the lines above show where it happened."
+    },
+    {
+     "type": "code",
+     "text": "print(10 / 0)"
+    },
+    {
+     "type": "output",
+     "text": "Traceback (most recent call last):\n  File \"<your code>\", line 1, in <module>\n    print(10 / 0)\n           ~~~^~~\nZeroDivisionError: division by zero"
+    },
+    {
+     "type": "h",
+     "text": "try / except"
+    },
+    {
+     "type": "p",
+     "text": "Wrap risky code in `try`. If it raises the named error, the `except` block runs instead of crashing."
+    },
+    {
+     "type": "code",
+     "text": "try:\n    number = int(\"abc\")\nexcept ValueError:\n    print(\"That's not a number\")"
+    },
+    {
+     "type": "output",
+     "text": "That's not a number"
+    },
+    {
+     "type": "h",
+     "text": "Raising your own errors"
+    },
+    {
+     "type": "code",
+     "text": "def divide(a, b):\n    if b == 0:\n        raise ValueError(\"b must not be zero\")\n    return a / b\n\ntry:\n    divide(1, 0)\nexcept ValueError as error:\n    print(\"Oops:\", error)"
+    },
+    {
+     "type": "output",
+     "text": "Oops: b must not be zero"
+    },
+    {
+     "type": "h",
+     "text": "Errors you will meet often"
+    },
+    {
+     "type": "list",
+     "items": [
+      "`SyntaxError` — the code isn't valid Python (missing colon or bracket).",
+      "`NameError` — you used a name that doesn't exist (often a typo).",
+      "`TypeError` — a value has the wrong type, like `\"a\" + 1`.",
+      "`ValueError` — right type, unsuitable value, like `int(\"abc\")`.",
+      "`IndexError` / `KeyError` — a list position or dictionary key doesn't exist."
+     ]
+    },
+    {
+     "type": "tip",
+     "text": "Catch the **specific** error you expect. A bare `except:` hides real bugs."
+    }
+   ],
+   "exercise": {
+    "prompt": "Write `parse_age(text)`. It returns the age as an `int` if `text` is a whole number that isn't negative. For anything else (`\"abc\"`, `\"\"`, `\"3.5\"`, `\"-5\"`) it returns `None`.",
+    "starter": "def parse_age(text):\n    pass\n",
+    "hint": "Wrap `int(text)` in `try` / `except ValueError`, then check whether the result is below zero.",
+    "solution": "def parse_age(text):\n    try:\n        age = int(text)\n    except ValueError:\n        return None\n    if age < 0:\n        return None\n    return age\n",
+    "check": "assert parse_age(\"42\") == 42, f\"parse_age('42') should be 42 but returned {parse_age('42')!r}.\"\nassert parse_age(\"0\") == 0, \"parse_age('0') should be 0.\"\nfor bad in [\"abc\", \"\", \"3.5\", \"-5\"]:\n    assert parse_age(bad) is None, f\"parse_age({bad!r}) should return None but returned {parse_age(bad)!r}.\"\n"
+   }
+  },
+  {
+   "id": "modules",
+   "title": "Using Modules",
+   "summary": "Import ready-made tools from Python's standard library.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **module** is a file of ready-made Python code you can reuse. Python ships with a huge collection of them called the **standard library**: maths, dates, random numbers, JSON and much more. Use `import` to bring a module in."
+    },
+    {
+     "type": "code",
+     "text": "import math\n\nprint(math.sqrt(16))\nprint(math.pi)\nprint(math.ceil(4.2), math.floor(4.8))"
+    },
+    {
+     "type": "output",
+     "text": "4.0\n3.141592653589793\n5 4"
+    },
+    {
+     "type": "p",
+     "text": "After `import math`, everything inside it is reached with a dot: `math.sqrt` means \"the `sqrt` function inside `math`\"."
+    },
+    {
+     "type": "h",
+     "text": "Three ways to import"
+    },
+    {
+     "type": "code",
+     "text": "import math                  # use it as math.factorial(...)\nfrom math import sqrt, pi    # use the names directly\nimport statistics as stats   # give the module a nickname\n\nprint(math.factorial(5))\nprint(sqrt(25))\nprint(stats.mean([1, 2, 3, 4]))"
+    },
+    {
+     "type": "output",
+     "text": "120\n5.0\n2.5"
+    },
+    {
+     "type": "tip",
+     "text": "Prefer `import module` or `from module import name`. Avoid `from module import *`: it dumps every name into your program and makes it hard to tell where things came from."
+    },
+    {
+     "type": "h",
+     "text": "Dates"
+    },
+    {
+     "type": "code",
+     "text": "from datetime import date\n\nlaunch = date(2024, 3, 15)\nprint(launch.year)\nprint(launch.strftime(\"%d %B %Y\"))\nprint((date(2024, 12, 25) - launch).days)"
+    },
+    {
+     "type": "output",
+     "text": "2024\n15 March 2024\n285"
+    },
+    {
+     "type": "h",
+     "text": "Random numbers"
+    },
+    {
+     "type": "p",
+     "text": "`random` gives different results on every run, so this example prints checks that are always true."
+    },
+    {
+     "type": "code",
+     "text": "import random\n\ndice = random.randint(1, 6)\nprint(1 <= dice <= 6)\n\ncolors = [\"red\", \"green\", \"blue\"]\nprint(random.choice(colors) in colors)\n\nrandom.shuffle(colors)\nprint(sorted(colors))"
+    },
+    {
+     "type": "output",
+     "text": "True\nTrue\n['blue', 'green', 'red']"
+    },
+    {
+     "type": "h",
+     "text": "Exploring a module"
+    },
+    {
+     "type": "p",
+     "text": "`dir(module)` lists every name a module offers, which is handy when you can't remember a function's name."
+    },
+    {
+     "type": "code",
+     "text": "import math\n\nprint(\"sqrt\" in dir(math))\nprint(type(math))"
+    },
+    {
+     "type": "output",
+     "text": "True\n<class 'module'>"
+    },
+    {
+     "type": "warn",
+     "text": "Never name your own file after a module you want to use (for example `random.py`): Python would import your file instead of the real one."
+    }
+   ],
+   "exercise": {
+    "prompt": "Use the `math` module. Write `circle_area(radius)` (area = π × radius²) and `distance(x1, y1, x2, y2)`, the straight-line distance between two points.",
+    "starter": "# Import what you need here\n\n\ndef circle_area(radius):\n    pass\n\n\ndef distance(x1, y1, x2, y2):\n    pass\n",
+    "hint": "`math.pi` is π and `math.sqrt(...)` is the square root. The distance is `sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)`.",
+    "solution": "import math\n\n\ndef circle_area(radius):\n    return math.pi * radius ** 2\n\n\ndef distance(x1, y1, x2, y2):\n    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)\n",
+    "check": "import math as real_math\nassert abs(circle_area(1) - real_math.pi) < 1e-9, f\"circle_area(1) should be {real_math.pi} but returned {circle_area(1)!r}.\"\nassert abs(circle_area(2) - 12.566370614359172) < 1e-9, f\"circle_area(2) should be about 12.566 but returned {circle_area(2)!r}.\"\nassert distance(0, 0, 3, 4) == 5.0, f\"distance(0, 0, 3, 4) should be 5.0 but returned {distance(0, 0, 3, 4)!r}.\"\nassert distance(1, 1, 4, 5) == 5.0, f\"distance(1, 1, 4, 5) should be 5.0 but returned {distance(1, 1, 4, 5)!r}.\"\n"
+   }
+  },
+  {
+   "id": "files",
+   "title": "Reading & Writing Files",
+   "summary": "Save text to files and read it back.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Programs often need to save or load data. In Python you do that with `open()`. Always open a file inside a `with` block: it **closes the file for you**, even if an error happens."
+    },
+    {
+     "type": "tip",
+     "text": "In this app, files live in a private, temporary folder in your browser's memory. They disappear when your program ends and never touch your computer's disk. That's why each example creates a file first and then reads it back."
+    },
+    {
+     "type": "code",
+     "text": "with open(\"notes.txt\", \"w\") as file:\n    file.write(\"First line\\n\")\n    file.write(\"Second line\\n\")\n\nwith open(\"notes.txt\") as file:\n    text = file.read()\n\nprint(repr(text))"
+    },
+    {
+     "type": "output",
+     "text": "'First line\\nSecond line\\n'"
+    },
+    {
+     "type": "p",
+     "text": "`\\n` is the invisible **newline** character that ends a line. `file.read()` returns the whole file as one string, and `repr()` shows the hidden characters."
+    },
+    {
+     "type": "h",
+     "text": "File modes"
+    },
+    {
+     "type": "p",
+     "text": "The second argument to `open()` says what you want to do:"
+    },
+    {
+     "type": "list",
+     "items": [
+      "`\"r\"` — **read** (the default). The file must already exist.",
+      "`\"w\"` — **write**. Creates the file, or *erases* it if it already exists.",
+      "`\"a\"` — **append**. Adds to the end without erasing anything."
+     ]
+    },
+    {
+     "type": "code",
+     "text": "with open(\"log.txt\", \"w\") as file:\n    file.write(\"start\\n\")\n\nwith open(\"log.txt\", \"a\") as file:\n    file.write(\"middle\\n\")\n    file.write(\"end\\n\")\n\nwith open(\"log.txt\") as file:\n    for line in file:\n        print(line.strip())"
+    },
+    {
+     "type": "output",
+     "text": "start\nmiddle\nend"
+    },
+    {
+     "type": "p",
+     "text": "Looping over a file gives you one line at a time. `strip()` removes the newline at the end of each."
+    },
+    {
+     "type": "h",
+     "text": "Getting a list of lines"
+    },
+    {
+     "type": "code",
+     "text": "with open(\"names.txt\", \"w\") as file:\n    file.write(\"Ada\\nGrace\\nLinus\\n\")\n\nwith open(\"names.txt\") as file:\n    names = file.read().splitlines()\n\nprint(names)\nprint(len(names))"
+    },
+    {
+     "type": "output",
+     "text": "['Ada', 'Grace', 'Linus']\n3"
+    },
+    {
+     "type": "h",
+     "text": "When the file isn't there"
+    },
+    {
+     "type": "p",
+     "text": "Opening a file that doesn't exist raises `FileNotFoundError`. You already know how to handle that."
+    },
+    {
+     "type": "code",
+     "text": "try:\n    with open(\"missing.txt\") as file:\n        print(file.read())\nexcept FileNotFoundError:\n    print(\"That file does not exist yet\")"
+    },
+    {
+     "type": "output",
+     "text": "That file does not exist yet"
+    },
+    {
+     "type": "warn",
+     "text": "Opening a file with `\"w\"` wipes out whatever was in it. Use `\"a\"` when you want to add to a file."
+    }
+   ],
+   "exercise": {
+    "prompt": "The file `scores.txt` has one score per line (it's provided below). Read it and store the sum in `total`. Then write the text `Total: 300` to a new file called `report.txt`.",
+    "starter": "# scores.txt already exists: one number per line\n\n# 1. Read the scores and store their sum in total\n\n# 2. Write \"Total: <total>\" to report.txt\n",
+    "hint": "Use `int(line)` on each line (it ignores the newline) and `sum(...)`. Then `open(\"report.txt\", \"w\")` and `file.write(f\"Total: {total}\")`.",
+    "solution": "with open(\"scores.txt\") as file:\n    scores = [int(line) for line in file]\ntotal = sum(scores)\n\nwith open(\"report.txt\", \"w\") as file:\n    file.write(f\"Total: {total}\\n\")\n",
+    "check": "assert \"total\" in globals(), \"Create a variable called total.\"\nassert total == 300, f\"total should be 300 but it is {total!r}.\"\ntry:\n    with open(\"report.txt\") as report_file:\n        report = report_file.read()\nexcept FileNotFoundError:\n    raise AssertionError(\"report.txt doesn't exist yet. Create it with open('report.txt', 'w').\") from None\nassert report.strip() == \"Total: 300\", f\"report.txt should contain 'Total: 300' but contains {report.strip()!r}.\"\n",
+    "files": {
+     "scores.txt": "90\n85\n70\n55\n"
+    }
+   }
+  },
+  {
+   "id": "data-files",
+   "title": "Saving Data: JSON & CSV",
+   "summary": "Store structured data in the two most common file formats.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Text files are fine for simple lists, but real data has structure. **JSON** stores nested dictionaries and lists. **CSV** stores tables (like a spreadsheet). Python has a module for each."
+    },
+    {
+     "type": "h",
+     "text": "JSON"
+    },
+    {
+     "type": "code",
+     "text": "import json\n\nperson = {\"name\": \"Ada\", \"languages\": [\"Python\", \"C\"], \"age\": 36}\n\ntext = json.dumps(person)\nprint(text)\nprint(json.loads(text)[\"languages\"][0])"
+    },
+    {
+     "type": "output",
+     "text": "{\"name\": \"Ada\", \"languages\": [\"Python\", \"C\"], \"age\": 36}\nPython"
+    },
+    {
+     "type": "p",
+     "text": "`dumps` turns Python data into a JSON **s**tring, and `loads` turns a string back into Python data. Add `indent=2` to make it easy to read."
+    },
+    {
+     "type": "code",
+     "text": "import json\n\nprint(json.dumps({\"name\": \"Ada\", \"languages\": [\"Python\", \"C\"]}, indent=2))"
+    },
+    {
+     "type": "output",
+     "text": "{\n  \"name\": \"Ada\",\n  \"languages\": [\n    \"Python\",\n    \"C\"\n  ]\n}"
+    },
+    {
+     "type": "h",
+     "text": "JSON and files"
+    },
+    {
+     "type": "p",
+     "text": "`json.dump(data, file)` and `json.load(file)` (no **s**) work directly with open files."
+    },
+    {
+     "type": "code",
+     "text": "import json\n\nsettings = {\"theme\": \"dark\", \"font_size\": 14}\n\nwith open(\"settings.json\", \"w\") as file:\n    json.dump(settings, file)\n\nwith open(\"settings.json\") as file:\n    loaded = json.load(file)\n\nprint(loaded == settings)\nprint(loaded[\"font_size\"])"
+    },
+    {
+     "type": "output",
+     "text": "True\n14"
+    },
+    {
+     "type": "tip",
+     "text": "JSON only understands text, numbers, `True`/`False`/`None`, lists and dictionaries. A tuple comes back as a list, and dictionary keys always come back as strings."
+    },
+    {
+     "type": "h",
+     "text": "CSV"
+    },
+    {
+     "type": "code",
+     "text": "import csv\n\nrows = [[\"name\", \"score\"], [\"Ada\", 95], [\"Grace\", 88]]\n\nwith open(\"scores.csv\", \"w\", newline=\"\") as file:\n    csv.writer(file).writerows(rows)\n\nwith open(\"scores.csv\", newline=\"\") as file:\n    for row in csv.DictReader(file):\n        print(row[\"name\"], \"scored\", row[\"score\"])"
+    },
+    {
+     "type": "output",
+     "text": "Ada scored 95\nGrace scored 88"
+    },
+    {
+     "type": "p",
+     "text": "`DictReader` uses the first row as column names and gives you each later row as a dictionary. Everything read from a CSV is text, so convert numbers with `int()` or `float()`."
+    },
+    {
+     "type": "warn",
+     "text": "Always pass `newline=\"\"` when opening CSV files. Without it you can get blank lines between rows on some systems."
+    }
+   ],
+   "exercise": {
+    "prompt": "`students.json` (provided below) holds a list of students with scores. Load it, then make a list `passed` of the **names** of students who scored 70 or more, and save that list to a new file called `passed.json`.",
+    "starter": "import json\n\n# 1. Load students.json\n\n# 2. Build the list passed\n\n# 3. Save it to passed.json\n",
+    "hint": "`students = json.load(file)`, then `passed = [s[\"name\"] for s in students if s[\"score\"] >= 70]`, then `json.dump(passed, file)` into a file opened with `\"w\"`.",
+    "solution": "import json\n\nwith open(\"students.json\") as file:\n    students = json.load(file)\n\npassed = [s[\"name\"] for s in students if s[\"score\"] >= 70]\n\nwith open(\"passed.json\", \"w\") as file:\n    json.dump(passed, file)\n",
+    "check": "import json as real_json\nassert \"passed\" in globals(), \"Create a list called passed.\"\nassert passed == [\"Ada\", \"Grace\"], f\"passed is {passed} but should be ['Ada', 'Grace'].\"\ntry:\n    with open(\"passed.json\") as saved_file:\n        saved = real_json.load(saved_file)\nexcept FileNotFoundError:\n    raise AssertionError(\"passed.json doesn't exist yet. Save your list with json.dump().\") from None\nexcept ValueError:\n    raise AssertionError(\"passed.json doesn't contain valid JSON. Use json.dump(passed, file).\") from None\nassert saved == [\"Ada\", \"Grace\"], f\"passed.json contains {saved} but should contain ['Ada', 'Grace'].\"\n",
+    "files": {
+     "students.json": "[\n  {\"name\": \"Ada\", \"score\": 95},\n  {\"name\": \"Grace\", \"score\": 88},\n  {\"name\": \"Linus\", \"score\": 61}\n]\n"
+    }
+   }
+  },
+  {
+   "id": "own-modules",
+   "title": "Your Own Modules",
+   "summary": "Split code into files and import it like any other module.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Any file ending in `.py` is a module. Real programs are split across several files so each one stays small and focused. To import one, it has to be in the same folder as your program."
+    },
+    {
+     "type": "tip",
+     "text": "This app gives you one editor, so the examples **write** the module file first and then import it. On your own computer you would simply create a second file next to your program."
+    },
+    {
+     "type": "code",
+     "text": "with open(\"greetings.py\", \"w\") as file:\n    file.write('''\ndef hello(name):\n    return f\"Hello, {name}!\"\n\nFAVORITE = \"Python\"\n''')\n\nimport greetings\n\nprint(greetings.hello(\"Ada\"))\nprint(greetings.FAVORITE)"
+    },
+    {
+     "type": "output",
+     "text": "Hello, Ada!\nPython"
+    },
+    {
+     "type": "h",
+     "text": "Modules run once"
+    },
+    {
+     "type": "p",
+     "text": "The first `import` runs the module's code. Python remembers it, so importing again does nothing."
+    },
+    {
+     "type": "code",
+     "text": "with open(\"hello_mod.py\", \"w\") as file:\n    file.write('print(\"loading hello_mod\")\\n')\n\nimport hello_mod\nimport hello_mod\nprint(\"done\")"
+    },
+    {
+     "type": "output",
+     "text": "loading hello_mod\ndone"
+    },
+    {
+     "type": "h",
+     "text": "The __name__ idiom"
+    },
+    {
+     "type": "p",
+     "text": "Inside a module, `__name__` is the module's own name when it's imported, but `\"__main__\"` when the file is run directly. Wrapping code in `if __name__ == \"__main__\":` lets one file work both as a module and as a program."
+    },
+    {
+     "type": "code",
+     "text": "with open(\"calc.py\", \"w\") as file:\n    file.write('''\ndef add(a, b):\n    return a + b\n\nif __name__ == \"__main__\":\n    print(\"calc.py was run directly\")\n''')\n\nimport calc\n\nprint(calc.add(2, 3))\nprint(calc.__name__)"
+    },
+    {
+     "type": "output",
+     "text": "5\ncalc"
+    },
+    {
+     "type": "p",
+     "text": "The line inside the `if` did **not** run, because `calc.py` was imported rather than run directly."
+    },
+    {
+     "type": "tip",
+     "text": "Beyond the standard library there are hundreds of thousands of community packages you can add with `pip install` on your own computer. Importing them works exactly the same way."
+    }
+   ],
+   "exercise": {
+    "prompt": "Create a module file `shapes.py` that defines `square_area(side)` (returns side × side). Then import it and print `shapes.square_area(5)`.",
+    "starter": "# 1. Write shapes.py: put the module's code between the triple quotes\nwith open(\"shapes.py\", \"w\") as file:\n    file.write(\"\"\"\n# define square_area here\n\"\"\")\n\n# 2. Import it and print shapes.square_area(5)\n",
+    "hint": "Inside the triple quotes write `def square_area(side):` and `return side * side` (indented). Then `import shapes` and `print(shapes.square_area(5))`.",
+    "solution": "with open(\"shapes.py\", \"w\") as file:\n    file.write(\"\"\"\ndef square_area(side):\n    return side * side\n\"\"\")\n\nimport shapes\n\nprint(shapes.square_area(5))\n",
+    "check": "assert \"shapes\" in globals(), \"Import your module with: import shapes\"\nassert hasattr(shapes, \"square_area\"), \"shapes.py must define a function called square_area.\"\nassert shapes.square_area(4) == 16, f\"square_area(4) should be 16 but returned {shapes.square_area(4)!r}.\"\nassert _output.strip() == \"25\", f\"Print shapes.square_area(5): expected 25 but the output was {_output.strip()!r}.\"\n"
+   }
+  },
+  {
+   "id": "classes",
+   "title": "Classes & Objects",
+   "summary": "Bundle data and behaviour together.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **class** is a blueprint; an **object** is one thing built from it. `__init__` runs when an object is created, and `self` refers to that particular object."
+    },
+    {
+     "type": "code",
+     "text": "class Dog:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n\n    def bark(self):\n        return f\"{self.name} says Woof!\"\n\nrex = Dog(\"Rex\", 3)\nprint(rex.name)\nprint(rex.bark())"
+    },
+    {
+     "type": "output",
+     "text": "Rex\nRex says Woof!"
+    },
+    {
+     "type": "h",
+     "text": "Objects remember their state"
+    },
+    {
+     "type": "code",
+     "text": "class Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        self.count += 1\n\n    def __str__(self):\n        return f\"Counter at {self.count}\"\n\nc = Counter()\nc.increment()\nc.increment()\nprint(c)"
+    },
+    {
+     "type": "output",
+     "text": "Counter at 2"
+    },
+    {
+     "type": "p",
+     "text": "`__str__` controls what `print()` shows for your object."
+    },
+    {
+     "type": "h",
+     "text": "Inheritance"
+    },
+    {
+     "type": "p",
+     "text": "A class can extend another and override its behaviour."
+    },
+    {
+     "type": "code",
+     "text": "class Animal:\n    def speak(self):\n        return \"...\"\n\nclass Cat(Animal):\n    def speak(self):\n        return \"Meow\"\n\nprint(Animal().speak())\nprint(Cat().speak())"
+    },
+    {
+     "type": "output",
+     "text": "...\nMeow"
+    },
+    {
+     "type": "tip",
+     "text": "You've covered the core of Python. The next lessons use classes to model real defensive security tools: login trackers, IP blocklists, detection rules and safe password storage."
+    }
+   ],
+   "exercise": {
+    "prompt": "Create a class `BankAccount`. `BankAccount(owner)` starts with `balance` 0. It has `deposit(amount)` and `withdraw(amount)`. Withdrawing more than the balance must raise a `ValueError` and leave the balance unchanged.",
+    "starter": "class BankAccount:\n    def __init__(self, owner):\n        pass\n",
+    "hint": "Store `self.owner` and `self.balance = 0` in `__init__`. In `withdraw`, check `amount > self.balance` first and `raise ValueError(...)`.",
+    "solution": "class BankAccount:\n    def __init__(self, owner):\n        self.owner = owner\n        self.balance = 0\n\n    def deposit(self, amount):\n        self.balance += amount\n\n    def withdraw(self, amount):\n        if amount > self.balance:\n            raise ValueError(\"Insufficient funds\")\n        self.balance -= amount\n",
+    "check": "account = BankAccount(\"Ada\")\nassert account.owner == \"Ada\", \"account.owner should be 'Ada'.\"\nassert account.balance == 0, \"A new account should start with balance 0.\"\naccount.deposit(50)\nassert account.balance == 50, \"After deposit(50) the balance should be 50.\"\naccount.withdraw(20)\nassert account.balance == 30, \"After withdraw(20) the balance should be 30.\"\ntry:\n    account.withdraw(100)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError(\"withdraw(100) should raise ValueError when funds are insufficient.\")\nassert account.balance == 30, \"A failed withdrawal must not change the balance.\"\n"
+   }
+  },
+  {
+   "id": "class-design",
+   "title": "Encapsulation & Properties",
+   "summary": "Protect an object's data behind safe, validated methods.",
+   "blocks": [
+    {
+     "type": "sec",
+     "text": "These lessons use **defensive** security examples: validating input, tracking failed logins, watching logs and storing passwords safely. They are the tools defenders build, and each one teaches an object-oriented idea along the way."
+    },
+    {
+     "type": "p",
+     "text": "Objects hold two kinds of attributes. **Instance attributes** belong to one object. **Class attributes** are shared by every object of the class."
+    },
+    {
+     "type": "code",
+     "text": "class Session:\n    timeout_minutes = 15         # class attribute: shared\n\n    def __init__(self, user):\n        self.user = user         # instance attribute: one per object\n        self.active = True\n\na = Session(\"ada\")\nb = Session(\"grace\")\nprint(a.timeout_minutes, b.timeout_minutes)\n\nSession.timeout_minutes = 5\nprint(a.timeout_minutes)"
+    },
+    {
+     "type": "output",
+     "text": "15 15\n5"
+    },
+    {
+     "type": "h",
+     "text": "Encapsulation"
+    },
+    {
+     "type": "p",
+     "text": "**Encapsulation** means keeping an object's internal data behind methods, so it can only change in safe, controlled ways. By convention a name starting with an underscore, like `_secret`, means \"internal: don't touch\"."
+    },
+    {
+     "type": "code",
+     "text": "class Vault:\n    def __init__(self, secret, pin):\n        self._secret = secret\n        self._pin = pin\n        self._attempts = 0\n\n    def unlock(self, pin):\n        self._attempts += 1\n        if pin == self._pin:\n            return self._secret\n        return None\n\nvault = Vault(\"launch-code\", \"4321\")\nprint(vault.unlock(\"0000\"))\nprint(vault.unlock(\"4321\"))"
+    },
+    {
+     "type": "output",
+     "text": "None\nlaunch-code"
+    },
+    {
+     "type": "warn",
+     "text": "An underscore is a **convention**, not a lock: anyone can still read `vault._secret`. Encapsulation prevents accidents and bugs; it is not secrecy. (And keeping a PIN in plain text is bad practice. The last lesson fixes that with hashing.)"
+    },
+    {
+     "type": "h",
+     "text": "Properties: validation at the door"
+    },
+    {
+     "type": "p",
+     "text": "A `@property` looks like a plain attribute from the outside, but runs your code when it is read or assigned. That lets you reject bad values **every time**, no matter who sets them."
+    },
+    {
+     "type": "code",
+     "text": "class Server:\n    def __init__(self, port):\n        self.port = port          # goes through the setter below\n\n    @property\n    def port(self):\n        return self._port\n\n    @port.setter\n    def port(self, value):\n        if not isinstance(value, int) or not 1 <= value <= 65535:\n            raise ValueError(f\"invalid port: {value!r}\")\n        self._port = value\n\nserver = Server(8080)\nprint(server.port)\ntry:\n    server.port = 99999\nexcept ValueError as error:\n    print(\"Rejected:\", error)"
+    },
+    {
+     "type": "output",
+     "text": "8080\nRejected: invalid port: 99999"
+    },
+    {
+     "type": "sec",
+     "text": "**Validate data at the boundary.** If every write passes through one checked door, invalid or hostile input can't sneak in through a forgotten code path."
+    },
+    {
+     "type": "p",
+     "text": "A property with no setter is **read-only**. This one exposes a *masked* version of a secret, safe to show in logs."
+    },
+    {
+     "type": "code",
+     "text": "class Token:\n    def __init__(self, value):\n        self._value = value\n\n    @property\n    def masked(self):\n        return \"*\" * (len(self._value) - 4) + self._value[-4:]\n\ntoken = Token(\"abcd1234efgh5678\")\nprint(token.masked)\ntry:\n    token.masked = \"hacked\"\nexcept AttributeError:\n    print(\"read-only!\")"
+    },
+    {
+     "type": "output",
+     "text": "************5678\nread-only!"
+    },
+    {
+     "type": "sec",
+     "text": "Real systems also slow attackers with rate limiting or growing delays, because a hard lockout lets an attacker deliberately lock real users out. The exercise below builds the simple lockout idea."
+    }
+   ],
+   "exercise": {
+    "prompt": "Build `LoginTracker(max_failures=3)`. `record_failure(user)` counts a failed login. `is_locked(user)` is `True` once that user has `max_failures` failures. `reset(user)` clears the count (as after a successful login). Keep the counts in a **private** attribute. `locked_users` is a **read-only property** returning a sorted list of locked usernames.",
+    "starter": "class LoginTracker:\n    def __init__(self, max_failures=3):\n        pass  # store the limit and the failure counts privately\n\n    # add record_failure, is_locked, reset and the locked_users property\n",
+    "hint": "Keep `self._failures = {}` mapping user to count. `is_locked` compares `self._failures.get(user, 0)` with the limit. `reset` can use `self._failures.pop(user, None)`. Decorate `locked_users` with `@property`.",
+    "solution": "class LoginTracker:\n    def __init__(self, max_failures=3):\n        self._max_failures = max_failures\n        self._failures = {}\n\n    def record_failure(self, user):\n        self._failures[user] = self._failures.get(user, 0) + 1\n\n    def is_locked(self, user):\n        return self._failures.get(user, 0) >= self._max_failures\n\n    def reset(self, user):\n        self._failures.pop(user, None)\n\n    @property\n    def locked_users(self):\n        return sorted(user for user in self._failures if self.is_locked(user))\n",
+    "check": "tracker = LoginTracker()\nassert tracker.is_locked(\"ada\") is False, \"A user with no failures must not be locked.\"\ntracker.record_failure(\"ada\")\ntracker.record_failure(\"ada\")\nassert tracker.is_locked(\"ada\") is False, \"After 2 failures (limit 3) the account should not be locked yet.\"\ntracker.record_failure(\"ada\")\nassert tracker.is_locked(\"ada\") is True, \"After 3 failures the account should be locked.\"\nassert tracker.is_locked(\"grace\") is False, \"Other users must not be affected.\"\ntracker.reset(\"ada\")\nassert tracker.is_locked(\"ada\") is False, \"reset() should clear the failures.\"\ntracker.reset(\"nobody\")  # must not raise\n\nstrict = LoginTracker(max_failures=1)\nstrict.record_failure(\"eve\")\nassert strict.is_locked(\"eve\") is True, \"max_failures=1 should lock after a single failure.\"\n\nmany = LoginTracker()\nfor name in [\"bob\", \"ada\", \"bob\", \"ada\", \"bob\", \"ada\", \"zed\"]:\n    many.record_failure(name)\nassert many.locked_users == [\"ada\", \"bob\"], f\"locked_users should be ['ada', 'bob'] but is {many.locked_users!r}.\"\ntry:\n    many.locked_users = []\nexcept AttributeError:\n    pass\nelse:\n    raise AssertionError(\"locked_users must be read-only (a property without a setter).\")\n"
+   }
+  },
+  {
+   "id": "special-methods",
+   "title": "Special Methods",
+   "summary": "Make your objects work with print, ==, len(), in and sets.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Methods with double underscores on both sides, called **dunder** methods, let your objects plug into Python's built-in features: printing, comparing, `len()`, `in` and more. You never call them directly; Python calls them for you."
+    },
+    {
+     "type": "h",
+     "text": "__str__ and __repr__"
+    },
+    {
+     "type": "code",
+     "text": "class LogEntry:\n    def __init__(self, user, action):\n        self.user = user\n        self.action = action\n\n    def __repr__(self):\n        return f\"LogEntry(user={self.user!r}, action={self.action!r})\"\n\n    def __str__(self):\n        return f\"{self.user} did {self.action}\"\n\nentry = LogEntry(\"ada\", \"login\")\nprint(entry)\nprint(repr(entry))\nprint([entry])"
+    },
+    {
+     "type": "output",
+     "text": "ada did login\nLogEntry(user='ada', action='login')\n[LogEntry(user='ada', action='login')]"
+    },
+    {
+     "type": "p",
+     "text": "`__str__` is the friendly text for people. `__repr__` is the precise text for developers, and it's what lists and error messages show."
+    },
+    {
+     "type": "sec",
+     "text": "**Never put secrets in `__repr__` or `__str__`.** They end up in logs, tracebacks and debug output. Show a username, not a password or token."
+    },
+    {
+     "type": "h",
+     "text": "Equality and hashing"
+    },
+    {
+     "type": "p",
+     "text": "By default two objects are equal only if they are the very same object. Define `__eq__` to compare by value. If you define `__eq__`, also define `__hash__` (equal objects must hash equally) so the objects can live in sets and be dictionary keys."
+    },
+    {
+     "type": "code",
+     "text": "class IPAddress:\n    def __init__(self, text):\n        self.text = text\n\n    def __eq__(self, other):\n        return isinstance(other, IPAddress) and self.text == other.text\n\n    def __hash__(self):\n        return hash(self.text)\n\na = IPAddress(\"10.0.0.1\")\nb = IPAddress(\"10.0.0.1\")\nprint(a == b)\nprint(a is b)\n\nblocked = {a}\nprint(b in blocked)"
+    },
+    {
+     "type": "output",
+     "text": "True\nFalse\nTrue"
+    },
+    {
+     "type": "h",
+     "text": "Behaving like a container"
+    },
+    {
+     "type": "p",
+     "text": "`__len__` powers `len()`, `__contains__` powers `in`, and `__iter__` powers `for` loops."
+    },
+    {
+     "type": "code",
+     "text": "class Blocklist:\n    def __init__(self):\n        self._ips = set()\n\n    def add(self, ip):\n        self._ips.add(ip)\n\n    def __len__(self):\n        return len(self._ips)\n\n    def __contains__(self, ip):\n        return ip in self._ips\n\n    def __iter__(self):\n        return iter(sorted(self._ips))\n\nblocklist = Blocklist()\nblocklist.add(\"6.6.6.6\")\nblocklist.add(\"1.2.3.4\")\nprint(len(blocklist))\nprint(\"6.6.6.6\" in blocklist)\nprint(list(blocklist))"
+    },
+    {
+     "type": "output",
+     "text": "2\nTrue\n['1.2.3.4', '6.6.6.6']"
+    },
+    {
+     "type": "tip",
+     "text": "In real projects use the standard library's `ipaddress` module for IP addresses. Building it once yourself shows how the pieces fit together."
+    }
+   ],
+   "exercise": {
+    "prompt": "Write a class `IPv4`. `IPv4(\"192.168.1.10\")` splits the text into four whole-number parts (each 0–255, **ASCII digits only**) and raises `ValueError` for anything else. `str()` gives the address back and `repr()` gives `IPv4('192.168.1.10')`. Equal addresses compare equal and hash the same. The read-only property `is_private` is `True` for `10.x.x.x`, `172.16.x.x`–`172.31.x.x` and `192.168.x.x`.",
+    "starter": "class IPv4:\n    def __init__(self, text):\n        pass  # validate and store the four numbers\n\n    # add __str__, __repr__, __eq__, __hash__ and the is_private property\n",
+    "hint": "Split with `text.split(\".\")`. Validate each part with `part.isascii() and part.isdigit()` and `0 <= int(part) <= 255` (plain `isdigit()` also accepts digits from other scripts). Store `self.octets = tuple(...)` and base `__eq__` and `__hash__` on it.",
+    "solution": "class IPv4:\n    def __init__(self, text):\n        parts = text.split(\".\")\n        valid = len(parts) == 4 and all(\n            part.isascii() and part.isdigit() and 0 <= int(part) <= 255 for part in parts\n        )\n        if not valid:\n            raise ValueError(f\"invalid IPv4 address: {text!r}\")\n        self.octets = tuple(int(part) for part in parts)\n\n    def __str__(self):\n        return \".\".join(str(octet) for octet in self.octets)\n\n    def __repr__(self):\n        return f\"IPv4({str(self)!r})\"\n\n    def __eq__(self, other):\n        return isinstance(other, IPv4) and self.octets == other.octets\n\n    def __hash__(self):\n        return hash(self.octets)\n\n    @property\n    def is_private(self):\n        first, second = self.octets[:2]\n        return first == 10 or (first == 172 and 16 <= second <= 31) or (first == 192 and second == 168)\n",
+    "check": "ip = IPv4(\"192.168.1.10\")\nassert str(ip) == \"192.168.1.10\", f\"str(ip) should be '192.168.1.10' but is {str(ip)!r}.\"\nassert repr(ip) == \"IPv4('192.168.1.10')\", f\"repr(ip) should be \\\"IPv4('192.168.1.10')\\\" but is {repr(ip)!r}.\"\nassert ip == IPv4(\"192.168.1.10\"), \"Two IPv4 objects with the same address should be equal.\"\nassert ip != IPv4(\"192.168.1.11\"), \"Different addresses must not be equal.\"\nassert len({IPv4(\"1.2.3.4\"), IPv4(\"1.2.3.4\")}) == 1, \"Equal addresses must have the same hash so a set keeps only one.\"\ncases = [(\"10.1.2.3\", True), (\"172.16.0.1\", True), (\"172.31.255.255\", True), (\"172.32.0.1\", False),\n         (\"192.168.0.5\", True), (\"192.169.0.5\", False), (\"8.8.8.8\", False)]\nfor text, private in cases:\n    assert IPv4(text).is_private == private, f\"{text} is_private should be {private}.\"\nbad_inputs = [\"1.2.3\", \"1.2.3.4.5\", \"256.1.1.1\", \"a.b.c.d\", \"1.2.3.-4\", \"\", \"1..2.3\", \" 1.2.3.4\",\n              \"\\u0661\\u0662\\u0663.1.1.1\"]\nfor bad in bad_inputs:\n    try:\n        IPv4(bad)\n    except ValueError:\n        continue\n    raise AssertionError(f\"IPv4({bad!r}) should raise ValueError. (Tip: str.isdigit() also accepts non-ASCII digits; add .isascii().)\")\n"
+   }
+  },
+  {
+   "id": "inheritance",
+   "title": "Inheritance & Polymorphism",
+   "summary": "Build a family of detection rules that share one interface.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "**Inheritance** lets a class reuse and specialise another. The **child** class gets everything the **parent** has, and can add or override behaviour. `super()` reaches the parent's version of a method."
+    },
+    {
+     "type": "code",
+     "text": "class Rule:\n    def __init__(self, name):\n        self.name = name\n\n    def matches(self, event):\n        return False\n\nclass FailedLoginRule(Rule):\n    def __init__(self, limit):\n        super().__init__(\"too many failed logins\")\n        self.limit = limit\n\n    def matches(self, event):\n        return event.get(\"failed_logins\", 0) > self.limit\n\nrule = FailedLoginRule(3)\nprint(rule.name)\nprint(rule.matches({\"failed_logins\": 5}))\nprint(rule.matches({\"failed_logins\": 1}))"
+    },
+    {
+     "type": "output",
+     "text": "too many failed logins\nTrue\nFalse"
+    },
+    {
+     "type": "p",
+     "text": "`super().__init__(...)` runs the parent's setup, so the child doesn't repeat it. `matches` is **overridden**: the child's version replaces the parent's."
+    },
+    {
+     "type": "h",
+     "text": "Polymorphism"
+    },
+    {
+     "type": "p",
+     "text": "**Polymorphism** means different classes respond to the same method call in their own way. The loop below doesn't care which kind of rule it has; it just calls `matches`."
+    },
+    {
+     "type": "code",
+     "text": "class Rule:\n    def __init__(self, name):\n        self.name = name\n\n    def matches(self, event):\n        return False\n\nclass FailedLoginRule(Rule):\n    def __init__(self, limit):\n        super().__init__(\"too many failed logins\")\n        self.limit = limit\n\n    def matches(self, event):\n        return event.get(\"failed_logins\", 0) > self.limit\n\nclass CountryRule(Rule):\n    def __init__(self, blocked):\n        super().__init__(\"blocked country\")\n        self.blocked = set(blocked)\n\n    def matches(self, event):\n        return event.get(\"country\") in self.blocked\n\nrules = [FailedLoginRule(3), CountryRule([\"XX\", \"YY\"])]\nevent = {\"user\": \"ada\", \"failed_logins\": 7, \"country\": \"XX\"}\n\nfor rule in rules:\n    if rule.matches(event):\n        print(\"ALERT:\", rule.name)\n\nprint(isinstance(rules[0], Rule))\nprint(issubclass(CountryRule, FailedLoginRule))"
+    },
+    {
+     "type": "output",
+     "text": "ALERT: too many failed logins\nALERT: blocked country\nTrue\nFalse"
+    },
+    {
+     "type": "p",
+     "text": "`isinstance(obj, Class)` is true for the class *and its parents*. `issubclass(A, B)` asks whether `A` inherits from `B`."
+    },
+    {
+     "type": "sec",
+     "text": "Detection tools grow by adding **new rule classes**, not by editing one giant `if` chain. New checks are easy to add and test in isolation, and can't accidentally break the old ones."
+    },
+    {
+     "type": "tip",
+     "text": "Use inheritance for **is-a** relationships (a `FailedLoginRule` *is a* `Rule`). For **has-a** relationships, the next lesson covers composition."
+    }
+   ],
+   "exercise": {
+    "prompt": "`Rule` is provided. Write two subclasses. `PortRule(ports)` has the name `\"blocked port\"` and matches when `event[\"port\"]` is in `ports`. `KeywordRule(words)` has the name `\"suspicious keyword\"` and matches when any word appears in `event[\"message\"]`, ignoring upper/lower case. Both must cope with events that are missing those keys.",
+    "starter": "class Rule:\n    def __init__(self, name):\n        self.name = name\n\n    def matches(self, event):\n        return False\n\n\n# Write PortRule and KeywordRule below\n",
+    "hint": "Call `super().__init__(\"blocked port\")` in `PortRule.__init__`. Use `event.get(\"port\")` and `event.get(\"message\", \"\")` so missing keys don't crash. For keywords: `any(word in message for word in self.words)` after lower-casing both sides.",
+    "solution": "class Rule:\n    def __init__(self, name):\n        self.name = name\n\n    def matches(self, event):\n        return False\n\n\nclass PortRule(Rule):\n    def __init__(self, ports):\n        super().__init__(\"blocked port\")\n        self.ports = set(ports)\n\n    def matches(self, event):\n        return event.get(\"port\") in self.ports\n\n\nclass KeywordRule(Rule):\n    def __init__(self, words):\n        super().__init__(\"suspicious keyword\")\n        self.words = [word.lower() for word in words]\n\n    def matches(self, event):\n        message = event.get(\"message\", \"\").lower()\n        return any(word in message for word in self.words)\n",
+    "check": "assert issubclass(PortRule, Rule), \"PortRule should inherit from Rule.\"\nassert issubclass(KeywordRule, Rule), \"KeywordRule should inherit from Rule.\"\nports = PortRule([23, 3389])\nassert ports.name == \"blocked port\", f\"PortRule name should be 'blocked port' but is {ports.name!r} (call super().__init__).\"\nassert ports.matches({\"port\": 23}) is True, \"Port 23 is in the blocked list.\"\nassert ports.matches({\"port\": 443}) is False, \"Port 443 is not blocked.\"\nassert ports.matches({}) is False, \"An event without a port must not match (and must not crash).\"\nwords = KeywordRule([\"password\", \"root\"])\nassert words.name == \"suspicious keyword\", f\"KeywordRule name should be 'suspicious keyword' but is {words.name!r}.\"\nassert words.matches({\"message\": \"Attempt to login as ROOT\"}) is True, \"Matching should ignore upper/lower case.\"\nassert words.matches({\"message\": \"hello world\"}) is False, \"No keyword appears in that message.\"\nassert words.matches({}) is False, \"An event without a message must not match (and must not crash).\"\n"
+   }
+  },
+  {
+   "id": "abstract-composition",
+   "title": "Abstract Classes & Composition",
+   "summary": "Define contracts that subclasses must follow, then combine objects into bigger tools.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Sometimes a parent class should only describe **what** children must do, never be used itself. An **abstract base class** (ABC) is that contract: it can't be instantiated, and children must implement every `@abstractmethod`."
+    },
+    {
+     "type": "code",
+     "text": "from abc import ABC, abstractmethod\n\nclass Rule(ABC):\n    def __init__(self, name):\n        self.name = name\n\n    @abstractmethod\n    def matches(self, event):\n        \"\"\"Return True when the event should raise an alert.\"\"\"\n\nclass Forgetful(Rule):\n    pass                              # forgot to write matches()\n\nclass BadHour(Rule):\n    def matches(self, event):\n        return event[\"hour\"] < 6\n\nfor cls in (Rule, Forgetful):\n    try:\n        cls(\"test\")\n    except TypeError:\n        print(cls.__name__, \"is abstract: cannot create it\")\n\nrule = BadHour(\"night login\")\nprint(rule.matches({\"hour\": 3}))"
+    },
+    {
+     "type": "output",
+     "text": "Rule is abstract: cannot create it\nForgetful is abstract: cannot create it\nTrue"
+    },
+    {
+     "type": "p",
+     "text": "Python refuses to create an object whose class still has unimplemented abstract methods, so a forgotten method is caught immediately instead of failing later in production."
+    },
+    {
+     "type": "h",
+     "text": "Composition: has-a"
+    },
+    {
+     "type": "p",
+     "text": "Inheritance models **is-a**. **Composition** models **has-a**: one object holds other objects and delegates work to them. It is usually more flexible, because the parts can be swapped freely."
+    },
+    {
+     "type": "code",
+     "text": "class PortRule:\n    def __init__(self, port, action):\n        self.port = port\n        self.action = action\n\nclass Firewall:\n    def __init__(self, default=\"deny\"):\n        self._rules = []\n        self._default = default\n\n    def add(self, rule):\n        self._rules.append(rule)\n\n    def decide(self, port):\n        for rule in self._rules:\n            if rule.port == port:\n                return rule.action\n        return self._default\n\nfirewall = Firewall()\nfirewall.add(PortRule(443, \"allow\"))\nfirewall.add(PortRule(22, \"allow\"))\nprint(firewall.decide(443))\nprint(firewall.decide(23))"
+    },
+    {
+     "type": "output",
+     "text": "allow\ndeny"
+    },
+    {
+     "type": "sec",
+     "text": "**Deny by default.** The firewall only allows what a rule explicitly permits, and blocks everything else. Forgetting a rule then fails *safe*, whereas allow-by-default fails *open*."
+    },
+    {
+     "type": "tip",
+     "text": "A `Firewall` **has** rules; it isn't a kind of rule. When you catch yourself inheriting just to reuse code, ask whether composition fits better."
+    }
+   ],
+   "exercise": {
+    "prompt": "`Rule`, `PortRule` and `KeywordRule` are provided. Build a `Monitor` that **has** rules (composition). `add_rule(rule)` registers a rule. `process(event)` returns the list of names of every rule that matched and records `(rule_name, event[\"user\"])` for each. `alerts` is a read-only property returning a **copy** of the recorded alerts (so outside code can't tamper with the log). `summary()` returns a dictionary counting alerts per rule name.",
+    "starter": "from abc import ABC, abstractmethod\n\n\nclass Rule(ABC):\n    def __init__(self, name):\n        self.name = name\n\n    @abstractmethod\n    def matches(self, event):\n        ...\n\n\nclass PortRule(Rule):\n    def __init__(self, ports):\n        super().__init__(\"blocked port\")\n        self.ports = set(ports)\n\n    def matches(self, event):\n        return event.get(\"port\") in self.ports\n\n\nclass KeywordRule(Rule):\n    def __init__(self, words):\n        super().__init__(\"suspicious keyword\")\n        self.words = [w.lower() for w in words]\n\n    def matches(self, event):\n        message = event.get(\"message\", \"\").lower()\n        return any(w in message for w in self.words)\n\n\nclass Monitor:\n    # A Monitor HAS rules; it is not a kind of Rule\n    pass\n",
+    "hint": "Keep `self._rules = []` and `self._alerts = []`. In `process`, loop over the rules, and for each match append the name to a result list and `(rule.name, event[\"user\"])` to `self._alerts`. The `alerts` property should `return list(self._alerts)`.",
+    "solution": "from abc import ABC, abstractmethod\n\n\nclass Rule(ABC):\n    def __init__(self, name):\n        self.name = name\n\n    @abstractmethod\n    def matches(self, event):\n        ...\n\n\nclass PortRule(Rule):\n    def __init__(self, ports):\n        super().__init__(\"blocked port\")\n        self.ports = set(ports)\n\n    def matches(self, event):\n        return event.get(\"port\") in self.ports\n\n\nclass KeywordRule(Rule):\n    def __init__(self, words):\n        super().__init__(\"suspicious keyword\")\n        self.words = [w.lower() for w in words]\n\n    def matches(self, event):\n        message = event.get(\"message\", \"\").lower()\n        return any(w in message for w in self.words)\n\n\nclass Monitor:\n    def __init__(self):\n        self._rules = []\n        self._alerts = []\n\n    def add_rule(self, rule):\n        self._rules.append(rule)\n\n    def process(self, event):\n        triggered = []\n        for rule in self._rules:\n            if rule.matches(event):\n                triggered.append(rule.name)\n                self._alerts.append((rule.name, event[\"user\"]))\n        return triggered\n\n    @property\n    def alerts(self):\n        return list(self._alerts)\n\n    def summary(self):\n        counts = {}\n        for name, _ in self._alerts:\n            counts[name] = counts.get(name, 0) + 1\n        return counts\n",
+    "check": "monitor = Monitor()\nmonitor.add_rule(PortRule([23]))\nmonitor.add_rule(KeywordRule([\"root\"]))\nassert monitor.process({\"user\": \"ada\", \"port\": 443, \"message\": \"hi\"}) == [], \"A harmless event should trigger no rules.\"\ngot = monitor.process({\"user\": \"bob\", \"port\": 23, \"message\": \"login as root\"})\nassert got == [\"blocked port\", \"suspicious keyword\"], f\"Both rules should match, in the order added. Got {got!r}.\"\nassert monitor.process({\"user\": \"eve\", \"port\": 23, \"message\": \"x\"}) == [\"blocked port\"], \"Only the port rule should match here.\"\nexpected = [(\"blocked port\", \"bob\"), (\"suspicious keyword\", \"bob\"), (\"blocked port\", \"eve\")]\nassert monitor.alerts == expected, f\"alerts should be {expected!r} but is {monitor.alerts!r}.\"\nmonitor.alerts.append((\"forged\", \"nobody\"))\nassert len(monitor.alerts) == 3, \"alerts must return a COPY so callers can't tamper with the real log.\"\nassert monitor.summary() == {\"blocked port\": 2, \"suspicious keyword\": 1}, f\"summary() is wrong: {monitor.summary()!r}.\"\ntry:\n    monitor.alerts = []\nexcept AttributeError:\n    pass\nelse:\n    raise AssertionError(\"alerts must be read-only (a property without a setter).\")\n"
+   }
+  },
+  {
+   "id": "dataclasses-enums",
+   "title": "Dataclasses & Enums",
+   "summary": "Model data with less code, and make evidence tamper-resistant.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Many classes only exist to hold data. `@dataclass` writes `__init__`, `__repr__` and `__eq__` for you from a list of typed fields."
+    },
+    {
+     "type": "code",
+     "text": "from dataclasses import dataclass\n\n@dataclass\nclass LogEntry:\n    user: str\n    ip: str\n    success: bool = True\n\nentry = LogEntry(\"ada\", \"10.0.0.5\")\nprint(entry)\nprint(entry == LogEntry(\"ada\", \"10.0.0.5\"))\n\nentry.success = False\nprint(entry)"
+    },
+    {
+     "type": "output",
+     "text": "LogEntry(user='ada', ip='10.0.0.5', success=True)\nTrue\nLogEntry(user='ada', ip='10.0.0.5', success=False)"
+    },
+    {
+     "type": "p",
+     "text": "Fields with a default (`success: bool = True`) must come after fields without one. The type hints document intent; Python itself doesn't enforce them."
+    },
+    {
+     "type": "h",
+     "text": "Frozen: records that can't be edited"
+    },
+    {
+     "type": "p",
+     "text": "`@dataclass(frozen=True)` makes instances **immutable**. Assigning to a field raises an error, and the object becomes hashable, so it can go in sets."
+    },
+    {
+     "type": "code",
+     "text": "from dataclasses import dataclass, FrozenInstanceError\n\n@dataclass(frozen=True)\nclass AuditRecord:\n    actor: str\n    action: str\n\nrecord = AuditRecord(\"ada\", \"deleted file\")\ntry:\n    record.action = \"read file\"\nexcept FrozenInstanceError:\n    print(\"Audit records cannot be edited\")\n\nprint(record)\nprint(len({record, AuditRecord(\"ada\", \"deleted file\")}))"
+    },
+    {
+     "type": "output",
+     "text": "Audit records cannot be edited\nAuditRecord(actor='ada', action='deleted file')\n1"
+    },
+    {
+     "type": "sec",
+     "text": "**Audit logs and evidence should be append-only and immutable.** If a record can be quietly edited after the fact, it can't be trusted. Freezing the object is the first line of defence."
+    },
+    {
+     "type": "h",
+     "text": "Mutable defaults"
+    },
+    {
+     "type": "p",
+     "text": "Never share one list between all objects. Use `field(default_factory=list)` so each object gets its own."
+    },
+    {
+     "type": "code",
+     "text": "from dataclasses import dataclass, field\n\n@dataclass\nclass Host:\n    name: str\n    open_ports: list = field(default_factory=list)\n\nweb = Host(\"web\")\ndb = Host(\"db\")\nweb.open_ports.append(443)\nprint(web.open_ports, db.open_ports)"
+    },
+    {
+     "type": "output",
+     "text": "[443] []"
+    },
+    {
+     "type": "h",
+     "text": "Enums"
+    },
+    {
+     "type": "p",
+     "text": "An **Enum** is a fixed set of named values. It replaces \"magic strings\": a typo like `\"admn\"` silently does the wrong thing, whereas a bad enum lookup fails loudly. `IntEnum` members also compare like numbers."
+    },
+    {
+     "type": "code",
+     "text": "from enum import Enum, IntEnum\n\nclass Severity(IntEnum):\n    LOW = 1\n    MEDIUM = 2\n    HIGH = 3\n\nclass Role(Enum):\n    VIEWER = \"viewer\"\n    ADMIN = \"admin\"\n\nprint(Severity.HIGH > Severity.LOW)\nprint(Severity.HIGH.name, Severity.HIGH.value)\nprint(Severity(2).name)\nprint(Role.ADMIN)\nprint(Role(\"viewer\"))\n\ntry:\n    Role(\"root\")\nexcept ValueError:\n    print(\"Unknown role rejected\")"
+    },
+    {
+     "type": "output",
+     "text": "True\nHIGH 3\nMEDIUM\nRole.ADMIN\nRole.VIEWER\nUnknown role rejected"
+    },
+    {
+     "type": "sec",
+     "text": "Converting untrusted text into an enum (`Role(user_input)`) is an easy way to **allow-list** valid values: anything unexpected raises `ValueError` instead of slipping through."
+    }
+   ],
+   "exercise": {
+    "prompt": "Model vulnerability findings. Create an `IntEnum` called `Severity` with `LOW = 1`, `MEDIUM = 2`, `HIGH = 3`. Create a **frozen** dataclass `Finding` with fields `title` (str) and `severity` (Severity). Then write `worst(findings)`, which returns the finding with the highest severity, or `None` for an empty list.",
+    "starter": "from dataclasses import dataclass\nfrom enum import IntEnum\n\n# 1. Define the Severity enum\n\n# 2. Define the frozen dataclass Finding\n\n# 3. Write worst(findings)\n",
+    "hint": "`class Severity(IntEnum):` with three members. `@dataclass(frozen=True)` above `class Finding:`. In `worst`, keep a `highest` variable that starts as `None` and update it whenever `finding.severity > highest.severity`.",
+    "solution": "from dataclasses import dataclass\nfrom enum import IntEnum\n\n\nclass Severity(IntEnum):\n    LOW = 1\n    MEDIUM = 2\n    HIGH = 3\n\n\n@dataclass(frozen=True)\nclass Finding:\n    title: str\n    severity: Severity\n\n\ndef worst(findings):\n    highest = None\n    for finding in findings:\n        if highest is None or finding.severity > highest.severity:\n            highest = finding\n    return highest\n",
+    "check": "import dataclasses as real_dataclasses\nassert [s.name for s in Severity] == [\"LOW\", \"MEDIUM\", \"HIGH\"], \"Severity should have LOW, MEDIUM and HIGH, in that order.\"\nassert Severity.LOW == 1 and Severity.MEDIUM == 2 and Severity.HIGH == 3, \"LOW, MEDIUM and HIGH should be 1, 2 and 3.\"\nassert Severity.HIGH > Severity.MEDIUM > Severity.LOW, \"Severity levels should compare like numbers (use IntEnum).\"\nassert real_dataclasses.is_dataclass(Finding), \"Finding should be a dataclass.\"\nfinding = Finding(\"Open port\", Severity.MEDIUM)\nassert finding.title == \"Open port\" and finding.severity is Severity.MEDIUM, \"Finding should store title and severity.\"\nassert finding == Finding(\"Open port\", Severity.MEDIUM), \"Findings with equal fields should be equal.\"\ntry:\n    finding.title = \"changed\"\nexcept real_dataclasses.FrozenInstanceError:\n    pass\nelse:\n    raise AssertionError(\"Finding must be frozen: assigning to a field should raise FrozenInstanceError.\")\nitems = [Finding(\"Weak cipher\", Severity.LOW), Finding(\"SQL injection\", Severity.HIGH), Finding(\"Open port\", Severity.MEDIUM)]\nassert worst(items).title == \"SQL injection\", f\"worst() should return the SQL injection finding but returned {worst(items)!r}.\"\nassert worst(items[:1]).title == \"Weak cipher\", \"worst() of a one-item list is that item.\"\nassert worst([]) is None, \"worst([]) should return None.\"\n"
+   }
+  },
+  {
+   "id": "secure-classes",
+   "title": "Capstone: A Secure User Store",
+   "summary": "Hash passwords with salts, compare safely and build a class that never keeps secrets in plain text.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Every breach story ends the same way when passwords were stored in plain text: everyone's account is instantly exposed. The golden rules are to **never store passwords**, **never invent your own cryptography** and **compare secrets safely**. This capstone applies everything from the OOP lessons."
+    },
+    {
+     "type": "h",
+     "text": "Hashing"
+    },
+    {
+     "type": "p",
+     "text": "A **hash function** turns any input into a fixed-size fingerprint. The same input always gives the same output, a tiny change gives a completely different one, and you can't run it backwards."
+    },
+    {
+     "type": "code",
+     "text": "import hashlib\n\nprint(hashlib.sha256(b\"hello\").hexdigest())\nprint(hashlib.sha256(b\"Hello\").hexdigest()[:16])\nprint(hashlib.sha256(b\"hello\").hexdigest() == hashlib.sha256(b\"hello\").hexdigest())"
+    },
+    {
+     "type": "output",
+     "text": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\n185f8db32271fe25\nTrue"
+    },
+    {
+     "type": "p",
+     "text": "So a site can store the hash and compare hashes at login, never the password itself. But a plain, fast hash is **not enough**: attackers can test billions of guesses per second, and two users with the same password would get the same hash. The fix is a **salt** (random data unique to each user) plus a **deliberately slow** hash that repeats the work many thousands of times."
+    },
+    {
+     "type": "h",
+     "text": "Salting and stretching (a teaching model)"
+    },
+    {
+     "type": "code",
+     "text": "import hashlib\nimport secrets\n\ndef stretch(password, salt, rounds=5000):\n    digest = salt + password.encode()\n    for _ in range(rounds):\n        digest = hashlib.sha256(digest).digest()\n    return digest\n\nsalt_a = secrets.token_bytes(16)\nsalt_b = secrets.token_bytes(16)\n\nprint(len(stretch(\"hunter2\", salt_a)))\nprint(stretch(\"hunter2\", salt_a) == stretch(\"hunter2\", salt_a))\nprint(stretch(\"hunter2\", salt_a) == stretch(\"hunter2\", salt_b))"
+    },
+    {
+     "type": "output",
+     "text": "32\nTrue\nFalse"
+    },
+    {
+     "type": "warn",
+     "text": "`stretch` is a **teaching model** of what real password hashing does. In real projects never write your own: use a vetted algorithm such as PBKDF2, scrypt, bcrypt or Argon2, like the example below."
+    },
+    {
+     "type": "codeonly",
+     "text": "import hashlib\nimport secrets\n\nsalt = secrets.token_bytes(16)\nkey = hashlib.pbkdf2_hmac(\"sha256\", b\"hunter2\", salt, 600_000)   # 600,000 rounds\n# store the salt and the key, never the password"
+    },
+    {
+     "type": "p",
+     "text": "That example runs on your own computer. (The Python inside this browser has no OpenSSL, so `pbkdf2_hmac` isn't available here, which is why we use the model above. OWASP currently suggests at least 600,000 rounds for PBKDF2-SHA256.)"
+    },
+    {
+     "type": "h",
+     "text": "Comparing secrets safely"
+    },
+    {
+     "type": "p",
+     "text": "Ordinary `==` on bytes can stop at the first difference, so how long it takes can leak how close a guess was (a **timing attack**). `hmac.compare_digest` takes the same time either way."
+    },
+    {
+     "type": "code",
+     "text": "import hmac\n\nprint(hmac.compare_digest(b\"secret\", b\"secret\"))\nprint(hmac.compare_digest(b\"secret\", b\"secreT\"))"
+    },
+    {
+     "type": "output",
+     "text": "True\nFalse"
+    },
+    {
+     "type": "h",
+     "text": "Random secrets"
+    },
+    {
+     "type": "code",
+     "text": "import secrets\n\ntoken = secrets.token_hex(16)\nprint(len(token))\nprint(token == secrets.token_hex(16))"
+    },
+    {
+     "type": "output",
+     "text": "32\nFalse"
+    },
+    {
+     "type": "sec",
+     "text": "Use the `secrets` module for tokens, salts and keys. The `random` module is **predictable** and must never be used for anything security-related."
+    },
+    {
+     "type": "h",
+     "text": "Custom exceptions"
+    },
+    {
+     "type": "p",
+     "text": "Your own exception classes make failures explicit and easy to handle. Inherit from `Exception`."
+    },
+    {
+     "type": "code",
+     "text": "class AccessDenied(Exception):\n    pass\n\ndef delete_user(actor_role, target):\n    if actor_role != \"admin\":\n        raise AccessDenied(f\"role {actor_role!r} may not delete users\")\n    return f\"deleted {target}\"\n\ntry:\n    delete_user(\"viewer\", \"bob\")\nexcept AccessDenied as error:\n    print(\"Denied:\", error)\n\nprint(delete_user(\"admin\", \"bob\"))"
+    },
+    {
+     "type": "output",
+     "text": "Denied: role 'viewer' may not delete users\ndeleted bob"
+    },
+    {
+     "type": "sec",
+     "text": "Checking **who is allowed to do what** before acting is called *access control*. Keep the check inside the class that owns the data, so no code path can skip it."
+    }
+   ],
+   "exercise": {
+    "prompt": "Finish the `User` class. `User(name, password)` stores `name`, a random 16-byte `salt` and the `password_hash`, and **never the password itself**. `check_password(candidate)` returns `True`/`False`, comparing with `hmac.compare_digest`. `change_password(old, new)` raises `AuthenticationError` if `old` is wrong, raises `ValueError` if `new` is shorter than 8 characters, and otherwise stores a fresh salt and hash. `repr()` must show only the name. (The helper uses just 1,000 rounds so this runs instantly; real systems use far more, with a proper algorithm.)",
+    "starter": "import hashlib\nimport hmac\nimport secrets\n\nROUNDS = 1_000\n\n\nclass AuthenticationError(Exception):\n    \"\"\"Raised when a password check fails.\"\"\"\n\n\ndef hash_password(password, salt):\n    digest = salt + password.encode()\n    for _ in range(ROUNDS):\n        digest = hashlib.sha256(digest).digest()\n    return digest\n\n\nclass User:\n    # __init__(self, name, password): keep name, salt and password_hash. NOT the password.\n    # check_password(self, candidate) -> bool\n    # change_password(self, old, new)\n    # __repr__: show only the name\n    pass\n",
+    "hint": "In `__init__`: `self.salt = secrets.token_bytes(16)` and `self.password_hash = hash_password(password, self.salt)`. In `check_password`, hash the candidate with the same salt and compare with `hmac.compare_digest`. In `change_password`, verify `old` first, then check the length of `new`.",
+    "solution": "import hashlib\nimport hmac\nimport secrets\n\nROUNDS = 1_000\n\n\nclass AuthenticationError(Exception):\n    \"\"\"Raised when a password check fails.\"\"\"\n\n\ndef hash_password(password, salt):\n    digest = salt + password.encode()\n    for _ in range(ROUNDS):\n        digest = hashlib.sha256(digest).digest()\n    return digest\n\n\nclass User:\n    MIN_LENGTH = 8\n\n    def __init__(self, name, password):\n        self.name = name\n        self.salt = secrets.token_bytes(16)\n        self.password_hash = hash_password(password, self.salt)\n\n    def check_password(self, candidate):\n        candidate_hash = hash_password(candidate, self.salt)\n        return hmac.compare_digest(candidate_hash, self.password_hash)\n\n    def change_password(self, old, new):\n        if not self.check_password(old):\n            raise AuthenticationError(\"current password is incorrect\")\n        if len(new) < self.MIN_LENGTH:\n            raise ValueError(\"new password must be at least 8 characters\")\n        self.salt = secrets.token_bytes(16)\n        self.password_hash = hash_password(new, self.salt)\n\n    def __repr__(self):\n        return f\"User(name={self.name!r})\"\n",
+    "check": "secret = \"correct horse\"\nada = User(\"ada\", secret)\neve = User(\"eve\", secret)\nassert ada.name == \"ada\", \"User should keep the name.\"\nassert isinstance(ada.salt, bytes) and len(ada.salt) >= 16, \"salt should be at least 16 random bytes.\"\nassert isinstance(ada.password_hash, bytes), \"password_hash should be the bytes returned by hash_password.\"\nassert secret not in repr(ada) and secret not in str(vars(ada)), \"The plain-text password must not be stored anywhere on the object.\"\nassert repr(ada) == \"User(name='ada')\", f\"repr should be \\\"User(name='ada')\\\" but is {repr(ada)!r}.\"\nassert ada.salt != eve.salt, \"Each user needs their own random salt.\"\nassert ada.password_hash != eve.password_hash, \"Same password + different salts must give different hashes.\"\nassert ada.check_password(secret) is True, \"The right password should be accepted.\"\nassert ada.check_password(\"wrong guess\") is False, \"A wrong password should be rejected.\"\nassert \"compare_digest\" in _code, \"Compare the hashes with hmac.compare_digest, not ==.\"\ntry:\n    ada.change_password(\"wrong guess\", \"a brand new password\")\nexcept AuthenticationError:\n    pass\nelse:\n    raise AssertionError(\"change_password with the wrong old password should raise AuthenticationError.\")\ntry:\n    ada.change_password(secret, \"short\")\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError(\"A new password shorter than 8 characters should raise ValueError.\")\nassert ada.check_password(secret) is True, \"A failed change must leave the old password working.\"\nold_salt = ada.salt\nada.change_password(secret, \"brand new pass\")\nassert ada.check_password(\"brand new pass\") is True, \"The new password should work after changing it.\"\nassert ada.check_password(secret) is False, \"The old password must stop working after changing it.\"\nassert ada.salt != old_salt, \"Use a fresh salt when the password changes.\"\n"
+   }
+  }
+ ]
+}

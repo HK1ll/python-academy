@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # Keep the workflow's GitHub Actions up to date (they run with repository access).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

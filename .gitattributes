@@ -1,0 +1,6 @@
+# Normalise line endings, but never touch the vendored Pyodide files: their SHA-256 hashes
+# (public/vendor/pyodide/SHA256SUMS.txt) must match byte for byte on every OS.
+* text=auto eol=lf
+public/vendor/** -text
+*.wasm binary
+*.zip binary
