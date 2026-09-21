@@ -1,0 +1,124 @@
+{
+ "categories": [
+  "Basics",
+  "Text & Data",
+  "Files",
+  "Classes",
+  "Security"
+ ],
+ "examples": [
+  {
+   "id": "hello-variables",
+   "title": "Hello & variables",
+   "category": "Basics",
+   "description": "Store values in variables and mix them into text with f-strings.",
+   "code": "# Variables hold values. An f-string puts them into text.\nname = \"Ada\"\nlanguage = \"Python\"\nyear = 2026\n\nprint(f\"Hello, {name}!\")\nprint(f\"{language} is fun in {year}.\")\nprint(f\"{name!r} has {len(name)} letters\")\n"
+  },
+  {
+   "id": "guessing-game",
+   "title": "Number guessing game",
+   "category": "Basics",
+   "description": "A while loop with input(). The answers are in the Input box below the editor.",
+   "code": "# The secret is fixed so the example is repeatable.\n# Type your own guesses (one per line) in the Input box and run again!\nsecret = 75\nguess = 0\ntries = 0\n\nwhile guess != secret:\n    guess = int(input(\"Guess a number from 1 to 100: \"))\n    tries += 1\n    if guess < secret:\n        print(\"Too low!\")\n    elif guess > secret:\n        print(\"Too high!\")\n\nprint(f\"You got it in {tries} tries!\")\n",
+   "stdin": "50\n80\n70\n75"
+  },
+  {
+   "id": "fizzbuzz",
+   "title": "FizzBuzz",
+   "category": "Basics",
+   "description": "The classic loop-and-condition puzzle.",
+   "code": "for number in range(1, 21):\n    if number % 15 == 0:\n        print(\"FizzBuzz\")\n    elif number % 3 == 0:\n        print(\"Fizz\")\n    elif number % 5 == 0:\n        print(\"Buzz\")\n    else:\n        print(number)\n"
+  },
+  {
+   "id": "primes",
+   "title": "Prime numbers (sieve)",
+   "category": "Basics",
+   "description": "Find every prime up to 60 with the Sieve of Eratosthenes.",
+   "code": "limit = 60\nis_prime = [True] * (limit + 1)\nis_prime[0] = is_prime[1] = False\n\nfor n in range(2, int(limit ** 0.5) + 1):\n    if is_prime[n]:\n        for multiple in range(n * n, limit + 1, n):\n            is_prime[multiple] = False\n\nprimes = [n for n, prime in enumerate(is_prime) if prime]\nprint(primes)\nprint(f\"{len(primes)} primes up to {limit}\")\n"
+  },
+  {
+   "id": "temperature-table",
+   "title": "Temperature table",
+   "category": "Basics",
+   "description": "Loop over a range and format neat columns.",
+   "code": "# {value:>6.1f} means: right-align in 6 characters, 1 decimal place\nprint(\" Celsius | Fahrenheit\")\nprint(\"---------+-----------\")\nfor celsius in range(-10, 41, 10):\n    fahrenheit = celsius * 9 / 5 + 32\n    print(f\"{celsius:>8} | {fahrenheit:>9.1f}\")\n"
+  },
+  {
+   "id": "fibonacci",
+   "title": "Fibonacci generator",
+   "category": "Basics",
+   "description": "An endless generator, safely sliced with islice.",
+   "code": "from itertools import islice\n\n\ndef fibonacci():\n    a, b = 0, 1\n    while True:\n        yield a\n        a, b = b, a + b\n\n\nprint(list(islice(fibonacci(), 12)))\n"
+  },
+  {
+   "id": "word-count",
+   "title": "Word counter",
+   "category": "Text & Data",
+   "description": "Count words with a Counter and show the most common ones.",
+   "code": "from collections import Counter\n\ntext = \"\"\"\nTo be, or not to be, that is the question:\nWhether 'tis nobler in the mind to suffer\nThe slings and arrows of outrageous fortune\n\"\"\"\n\nwords = [word.strip(\",.:;'\").lower() for word in text.split()]\ncounts = Counter(words)\n\nfor word, count in counts.most_common(5):\n    print(f\"{word:<10} {count}\")\n"
+  },
+  {
+   "id": "json-file",
+   "title": "Save and load JSON",
+   "category": "Files",
+   "description": "Write a dictionary to a file and read it back. Files exist only while the program runs.",
+   "code": "import json\n\nsettings = {\"theme\": \"dark\", \"font_size\": 14, \"recent\": [\"a.py\", \"b.py\"]}\n\nwith open(\"settings.json\", \"w\") as file:\n    json.dump(settings, file, indent=2)\n\nwith open(\"settings.json\") as file:\n    print(file.read())\n\nwith open(\"settings.json\") as file:\n    loaded = json.load(file)\n\nprint(\"Round trip identical:\", loaded == settings)\n"
+  },
+  {
+   "id": "bank-account",
+   "title": "Bank account class",
+   "category": "Classes",
+   "description": "A class with state, methods and a custom error.",
+   "code": "class InsufficientFunds(Exception):\n    pass\n\n\nclass BankAccount:\n    def __init__(self, owner, balance=0):\n        self.owner = owner\n        self.balance = balance\n\n    def deposit(self, amount):\n        self.balance += amount\n\n    def withdraw(self, amount):\n        if amount > self.balance:\n            raise InsufficientFunds(f\"balance is only {self.balance}\")\n        self.balance -= amount\n\n    def __str__(self):\n        return f\"{self.owner}: {self.balance}\"\n\n\naccount = BankAccount(\"Ada\", 100)\naccount.deposit(50)\naccount.withdraw(30)\nprint(account)\n\ntry:\n    account.withdraw(500)\nexcept InsufficientFunds as error:\n    print(\"Refused:\", error)\n"
+  },
+  {
+   "id": "password-strength",
+   "title": "Password strength checker",
+   "category": "Security",
+   "description": "Score passwords with simple rules and explain what is missing.",
+   "code": "import re\n\nCOMMON = {\"password\", \"123456\", \"qwerty\", \"letmein\", \"admin\"}\n\n\ndef check(password):\n    problems = []\n    if password.lower() in COMMON:\n        return [\"is one of the most common passwords\"]\n    if len(password) < 12:\n        problems.append(\"is shorter than 12 characters\")\n    if not re.search(r\"[a-z]\", password):\n        problems.append(\"has no lowercase letter\")\n    if not re.search(r\"[A-Z]\", password):\n        problems.append(\"has no uppercase letter\")\n    if not re.search(r\"\\d\", password):\n        problems.append(\"has no digit\")\n    if not re.search(r\"[^A-Za-z0-9]\", password):\n        problems.append(\"has no symbol\")\n    return problems\n\n\nfor candidate in [\"password\", \"Tr0ub4dor\", \"correct-Horse-battery-9\"]:\n    problems = check(candidate)\n    verdict = \"OK\" if not problems else \"weak: \" + \", \".join(problems)\n    print(f\"{candidate!r:28} {verdict}\")\n\n# Length matters most. A long passphrase beats a short \"clever\" password.\n"
+  },
+  {
+   "id": "salted-hash",
+   "title": "Salted password hashing",
+   "category": "Security",
+   "description": "Why the same password gets different hashes, and how to compare them safely.",
+   "code": "import hashlib\nimport hmac\nimport secrets\n\n\ndef stretch(password, salt, rounds=5000):\n    # A teaching model of what PBKDF2 / scrypt / Argon2 do.\n    # In real projects use a vetted library, never your own.\n    digest = salt + password.encode()\n    for _ in range(rounds):\n        digest = hashlib.sha256(digest).digest()\n    return digest\n\n\nsalt_a, salt_b = secrets.token_bytes(16), secrets.token_bytes(16)\nstored = stretch(\"hunter2\", salt_a)\n\nprint(\"same password, different salt -> different hash:\", stretch(\"hunter2\", salt_b) != stored)\nprint(\"right password accepted:\", hmac.compare_digest(stretch(\"hunter2\", salt_a), stored))\nprint(\"wrong password rejected:\", not hmac.compare_digest(stretch(\"Hunter2\", salt_a), stored))\n"
+  },
+  {
+   "id": "log-scan",
+   "title": "Log scanner",
+   "category": "Security",
+   "description": "Parse failed logins from a log with a regex and flag noisy addresses.",
+   "code": "import re\nfrom collections import Counter\n\nLOG = \"\"\"\n10:15:01 Failed password for admin from 203.0.113.5\n10:15:04 Failed password for root from 203.0.113.5\n10:15:07 Accepted password for ada from 198.51.100.7\n10:15:09 Failed password for oracle from 203.0.113.5\n10:16:30 Failed password for ada from 198.51.100.7\n\"\"\"\n\nfailures = re.findall(r\"Failed password for (\\w+) from ([\\d.]+)\", LOG)\nper_ip = Counter(ip for user, ip in failures)\n\nfor ip, count in per_ip.most_common():\n    flag = \"  <-- suspicious\" if count >= 3 else \"\"\n    print(f\"{ip:<15} {count} failures{flag}\")\n"
+  },
+  {
+   "id": "caesar",
+   "title": "Caesar cipher (a toy)",
+   "category": "Security",
+   "description": "Encrypt and crack a classic cipher. It shows why home-made crypto is weak.",
+   "code": "# A toy cipher for learning. NEVER use it to protect real secrets.\ndef shift(text, amount):\n    result = []\n    for char in text:\n        if char.isascii() and char.isalpha():\n            base = ord(\"A\") if char.isupper() else ord(\"a\")\n            result.append(chr((ord(char) - base + amount) % 26 + base))\n        else:\n            result.append(char)\n    return \"\".join(result)\n\n\nsecret = shift(\"Meet at the old bridge\", 3)\nprint(\"encrypted:\", secret)\nprint(\"decrypted:\", shift(secret, -3))\n\n# Only 25 possible keys, so an attacker just tries them all:\nfor key in range(1, 26):\n    if \"bridge\" in shift(secret, -key):\n        print(\"cracked with key\", key, \"->\", shift(secret, -key))\n"
+  },
+  {
+   "id": "ip-check",
+   "title": "IP address checker",
+   "category": "Security",
+   "description": "Classify addresses as private, loopback or public with the ipaddress module.",
+   "code": "import ipaddress\n\nfor text in [\"192.168.1.20\", \"10.0.0.5\", \"127.0.0.1\", \"8.8.8.8\", \"203.0.113.7\", \"999.1.1.1\"]:\n    try:\n        ip = ipaddress.ip_address(text)\n    except ValueError:\n        print(f\"{text:<14} not a valid address\")\n        continue\n    kind = \"loopback\" if ip.is_loopback else \"private\" if ip.is_private else \"public\"\n    print(f\"{text:<14} {kind}\")\n"
+  },
+  {
+   "id": "encoding-demo",
+   "title": "Base64, hex and bytes",
+   "category": "Security",
+   "description": "Encoding is reversible by anyone. It is not encryption.",
+   "code": "import base64\n\nmessage = \"admin:secret\"\ndata = message.encode(\"utf-8\")\n\nprint(\"bytes :\", data)\nprint(\"hex   :\", data.hex())\nprint(\"base64:\", base64.b64encode(data).decode())\n\n# Anyone can undo it, so encoding is not encryption:\nprint(\"decoded:\", base64.b64decode(\"YWRtaW46c2VjcmV0\").decode())\n"
+  },
+  {
+   "id": "secure-token",
+   "title": "Secure random tokens",
+   "category": "Security",
+   "description": "Use the secrets module (not random) for anything security-related.",
+   "code": "import secrets\n\ntoken = secrets.token_urlsafe(16)\nprint(\"token length:\", len(token))\nprint(\"looks random:\", token != secrets.token_urlsafe(16))\n\nprint(\"hex token   :\", len(secrets.token_hex(16)), \"characters\")\n\n# random.random() is predictable. Never use it for tokens, keys or passwords.\n"
+  }
+ ]
+}

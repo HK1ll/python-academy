@@ -77,6 +77,30 @@ class LessonContent(unittest.TestCase):
                         self.assertEqual(out.rstrip("\n"), after["text"])
 
 
+class PlaygroundExamples(unittest.TestCase):
+    def test_generated_examples_json_is_up_to_date(self):
+        on_disk = (BASE / "public" / "data" / "examples.json").read_text(encoding="utf-8")
+        self.assertEqual(on_disk, build.render_examples(), "run `python build.py`")
+
+    def test_every_example_runs_and_prints_something(self):
+        examples = build.build_examples()
+        self.assertGreaterEqual(len(examples), 10)
+        for example in examples:
+            with self.subTest(example=example["id"]):
+                result, out, err = run(example["code"], example.get("stdin", ""))
+                self.assertEqual(result["status"], "ok", err)
+                self.assertTrue(out.strip(), "an example must print something so learners see it working")
+
+    def test_examples_cover_every_category(self):
+        used = {example["category"] for example in build.build_examples()}
+        self.assertEqual(used, set(build.CATEGORIES))
+
+    def test_guessing_game_example_is_deterministic(self):
+        example = next(e for e in build.build_examples() if e["id"] == "guessing-game")
+        _, out, _ = run(example["code"], example["stdin"])
+        self.assertIn("You got it in 4 tries!", out)
+
+
 class HarnessBehaviour(unittest.TestCase):
     def test_print_and_input_echo(self):
         result, out, _ = run('name = input("Name? ")\nprint("Hi", name)', "Ada")

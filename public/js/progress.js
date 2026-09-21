@@ -1,4 +1,5 @@
 import { h } from './dom.js';
+import { downloadTextFile } from './download.js';
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 const MAX_IMPORT_BYTES = 2_000_000;
@@ -28,15 +29,7 @@ function statCard(label, value, note) {
 }
 
 function downloadBackup(store) {
-  const json = JSON.stringify(store.exportData(), null, 2);
-  const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `python-academy-progress-${store.today()}.json`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  downloadTextFile(`python-academy-progress-${store.today()}.json`, JSON.stringify(store.exportData(), null, 2), 'application/json');
 }
 
 /** The Progress page. `onChange` re-renders the app after an import so every view updates. */
@@ -131,7 +124,7 @@ export function progressView({ lessons, sections, store, onChange }) {
     try {
       const result = store.importData(await file.text());
       onChange(); // re-renders the page, so the message is shown again below
-      const summaryText = `Imported: ${result.lessonsAdded} ${pluralise(result.lessonsAdded, 'new completed lesson', 'new completed lessons')} and ${result.draftsAdded} saved ${pluralise(result.draftsAdded, 'draft', 'drafts')} added.`;
+      const summaryText = `Imported: ${result.lessonsAdded} ${pluralise(result.lessonsAdded, 'new completed lesson', 'new completed lessons')}, ${result.draftsAdded} saved ${pluralise(result.draftsAdded, 'draft', 'drafts')} and ${result.snippetsAdded} Playground ${pluralise(result.snippetsAdded, 'snippet', 'snippets')} added.`;
       const fresh = document.getElementById('backup-message');
       if (fresh) {
         fresh.hidden = false;
@@ -157,7 +150,7 @@ export function progressView({ lessons, sections, store, onChange }) {
       fileInput,
     ),
     message,
-    h('p', { class: 'muted small' }, 'Importing merges the file with what you already have: it never deletes progress or overwrites your saved code.'),
+    h('p', { class: 'muted small' }, 'Importing merges the file with what you already have: it never deletes progress or overwrites your saved code and snippets.'),
   );
 
   const view = h(

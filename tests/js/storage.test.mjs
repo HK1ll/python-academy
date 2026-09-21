@@ -86,7 +86,7 @@ test('export -> import round trip on a fresh browser restores everything', () =>
 
   const b = makeStore('2026-09-22');
   const result = b.importData(backup);
-  assert.deepEqual(result, { lessonsAdded: 1, draftsAdded: 1 });
+  assert.deepEqual(result, { lessonsAdded: 1, draftsAdded: 1, snippetsAdded: 0 });
   assert.equal(b.isComplete('alpha'), true);
   assert.equal(b.completedAt('alpha'), '2026-09-21');
   assert.equal(b.attempts('beta'), 1);
@@ -109,7 +109,7 @@ test('import merges: keeps the most progress and never overwrites local drafts',
   other.saveCode('gamma', 'REMOTE-GAMMA');
 
   const result = local.importData(JSON.stringify(other.exportData()));
-  assert.deepEqual(result, { lessonsAdded: 1, draftsAdded: 1 });
+  assert.deepEqual(result, { lessonsAdded: 1, draftsAdded: 1, snippetsAdded: 0 });
   assert.equal(local.completedAt('alpha'), '2026-09-10', 'earliest completion date wins');
   assert.equal(local.isComplete('gamma'), true);
   assert.equal(local.attempts('alpha'), 2, 'larger attempt count wins');
@@ -156,14 +156,14 @@ test('import sanitises hostile or malformed content instead of trusting it', () 
   assert.equal(store.getCode('alpha'), 'ok');
   assert.equal(store.getCode('playground'), undefined, 'oversized drafts are dropped');
   assert.equal(store.getCode('beta'), undefined);
-  assert.deepEqual(result, { lessonsAdded: 2, draftsAdded: 1 });
+  assert.deepEqual(result, { lessonsAdded: 2, draftsAdded: 1, snippetsAdded: 0 });
   assert.equal(Object.keys(store.exportData().completed).sort().join(), 'alpha,gamma');
 });
 
 test('backups from the first version of the app (completed: true) still import', () => {
   const store = makeStore();
   const old = { app: 'python-academy', version: 1, completed: { alpha: true, beta: true }, code: { alpha: 'print(1)' } };
-  assert.deepEqual(store.importData(JSON.stringify(old)), { lessonsAdded: 2, draftsAdded: 1 });
+  assert.deepEqual(store.importData(JSON.stringify(old)), { lessonsAdded: 2, draftsAdded: 1, snippetsAdded: 0 });
   assert.equal(store.completedAt('alpha'), null, 'old data has no completion date');
 });
 

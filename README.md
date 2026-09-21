@@ -108,8 +108,27 @@ tests/               unittest suites (lessons, harness, server security)
 
 ```powershell
 python -m unittest discover -s tests -v      # lessons, harness, server hardening, vendored files
-node --test tests/js/*.test.mjs              # progress storage: validation, streaks, import/export merge
+node --test tests/js/*.test.mjs              # storage, snippets, editor text-editing logic, file names
 ```
+
+## Playground
+
+The Playground (`#/playground`) is a personal workspace:
+
+- **Saved snippets**: create, rename, duplicate and delete as many as you like (up to 100). Each
+  keeps its own code and its own `input()` text. Lessons open their examples as a *new* snippet,
+  so your own work is never overwritten. Snippets are included in progress backups.
+- **Examples gallery**: 16 runnable examples (basics, text and data, files, classes, security).
+  `content/examples.py` is the source; a test runs every one of them.
+- **Editor**: line numbers, syntax highlighting, auto-closing brackets and quotes, smart Enter,
+  Tab/Shift+Tab (also on several lines), `Ctrl+/` to comment, adjustable text size, and the
+  failing line highlighted in red after an error.
+- **Run controls**: `Ctrl+Enter` runs everything, `Ctrl+Shift+Enter` runs only the selection.
+  Output shows run time and has Copy and Clear.
+- **Files**: open a `.py` file (text only, up to 50,000 characters) or download a snippet as `.py`.
+
+The editor is a real `<textarea>` layered over a highlighted copy of its text inside a single
+scrolling box, so the layers cannot drift apart. All text is inserted with `textContent`, never HTML.
 
 ## Progress tracking
 

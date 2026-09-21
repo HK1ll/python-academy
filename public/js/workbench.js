@@ -1,9 +1,10 @@
 import { append, clear, h } from './dom.js';
+import { dedentBlock, parseErrorLine } from './editing.js';
+import { createEditor } from './editor.js';
 import { highlight } from './highlight.js';
 import { inline } from './markup.js';
 import { MAX_CODE_CHARS } from './storage.js';
 
-const INDENT = '    ';
 const RUN_TIMEOUT_MS = 10_000;
 const CHECK_TIMEOUT_MS = 20_000;
 
@@ -39,34 +40,54 @@ export function providedFiles(files) {
   );
 }
 
-/** Code editor + run/check controls + output console. */
-export function createWorkbench({ runner, store, storageKey, starter, stdin = '', exercise = null, onPass, cleanups }) {
+function formatSeconds(milliseconds) {
+  const seconds = milliseconds / 1000;
+  return seconds < 10 ? `${seconds.toFixed(2)} s` : `${seconds.toFixed(1)} s`;
+}
+
+/**
+ * Code editor + run/check controls + output console. Used by lessons (with an exercise) and by the Playground.
+ *  - `persist` optionally replaces the default per-lesson autosave: { load(), save(code), loadStdin?(), saveStdin?(text) }
+ *  - `features`: { selectionRun: show "Run selection", reset: show "Reset" (needs `starter`) }
+ */
+export function createWorkbench({ runner, store, storageKey, starter = '', stdin = '', exercise = null, onPass, cleanups, features = {}, persist = null }) {
+  const { selectionRun = false, reset: canReset = true } = features;
+  const saver = persist ?? { load: () => store.getCode(storageKey), save: (code) => store.saveCode(storageKey, code) };
   const editorId = `editor-${storageKey}`;
-  const saved = store.getCode(storageKey);
-  const editor = h('textarea', {
-    id: editorId,
-    class: 'editor',
-    spellcheck: 'false',
-    autocomplete: 'off',
-    autocapitalize: 'off',
-    autocorrect: 'off',
-    wrap: 'off',
-    'aria-describedby': `${editorId}-help`,
+
+  const ed = createEditor({
+    value: saver.load() ?? starter,
+    describedBy: `${editorId}-help`,
+    maxLength: MAX_CODE_CHARS,
+    getSettings: () => store.settings(),
+    onRun: () => execute(false),
+    onRunSelection: () => selectionRun && execute(false, true),
   });
-  editor.value = saved ?? starter;
-  editor.maxLength = MAX_CODE_CHARS;
+  const editor = ed.textarea;
+  editor.id = editorId;
+  ed.applySettings(store.settings());
 
   const stdinBox = h('textarea', { class: 'stdin', rows: '3', spellcheck: 'false', 'aria-label': 'Input for input() calls, one line per call' });
-  stdinBox.value = stdin;
+  stdinBox.value = saver.loadStdin ? saver.loadStdin() : stdin;
   stdinBox.maxLength = 20_000;
+  const stdinWrap = h('details', { class: 'stdin-wrap', open: stdinBox.value ? true : null }, h('summary', null, 'Input for input()'), h('p', { class: 'muted small' }, 'One line per input() call.'), stdinBox);
 
   const output = h('pre', { class: 'console', role: 'log', 'aria-live': 'polite', 'aria-label': 'Program output', tabindex: '0' });
+  const runInfo = h('span', { class: 'run-info muted small', role: 'status' });
   const feedback = h('div', { class: 'feedback', role: 'status', hidden: true });
 
-  const runButton = h('button', { type: 'button', class: 'btn primary', onclick: () => execute(false) }, '▶ Run');
+  const runButton = h('button', { type: 'button', class: 'btn primary', title: 'Run the program (Ctrl+Enter)', onclick: () => execute(false) }, '▶ Run');
+  const selectionButton = selectionRun ? h('button', { type: 'button', class: 'btn', title: 'Run only the selected code (Ctrl+Shift+Enter)', onclick: () => execute(false, true) }, 'Run selection') : null;
   const checkButton = exercise ? h('button', { type: 'button', class: 'btn success', onclick: () => execute(true) }, '✓ Check answer') : null;
   const stopButton = h('button', { type: 'button', class: 'btn', hidden: true, onclick: () => runner.stop() }, '■ Stop');
-  const resetButton = h('button', { type: 'button', class: 'btn ghost', onclick: reset }, '↺ Reset');
+  const resetButton = canReset ? h('button', { type: 'button', class: 'btn ghost', onclick: reset }, '↺ Reset') : null;
+  const smallerButton = h('button', { type: 'button', class: 'btn ghost small', 'aria-label': 'Smaller text', title: 'Smaller text', onclick: () => changeFontSize(-1) }, 'A−');
+  const largerButton = h('button', { type: 'button', class: 'btn ghost small', 'aria-label': 'Larger text', title: 'Larger text', onclick: () => changeFontSize(1) }, 'A+');
+
+  function changeFontSize(delta) {
+    const { fontSize } = store.updateSettings({ fontSize: store.settings().fontSize + delta });
+    ed.applySettings({ fontSize });
+  }
 
   function showFeedback(kind, ...content) {
     feedback.hidden = false;
@@ -76,7 +97,7 @@ export function createWorkbench({ runner, store, storageKey, starter, stdin = ''
   }
 
   function setRunning(running) {
-    for (const button of [runButton, checkButton]) if (button) button.disabled = running;
+    for (const button of [runButton, selectionButton, checkButton]) if (button) button.disabled = running;
     stopButton.hidden = !running;
     editor.readOnly = running;
   }
@@ -88,23 +109,59 @@ export function createWorkbench({ runner, store, storageKey, starter, stdin = ''
     output.scrollTop = output.scrollHeight;
   }
 
-  async function execute(withCheck) {
-    if (runner.busy) return;
-    if (withCheck && exercise) store.recordAttempt(storageKey);
-    else store.recordActivity();
+  function clearOutput() {
     clear(output);
     feedback.hidden = true;
+    runInfo.textContent = '';
+    ed.clearError();
+  }
+
+  async function copyOutput() {
+    const text = output.textContent;
+    if (!text) {
+      runInfo.textContent = 'Nothing to copy yet';
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      runInfo.textContent = 'Output copied';
+    } catch {
+      runInfo.textContent = 'Copying is blocked here: select the output and press Ctrl+C';
+    }
+  }
+
+  async function execute(withCheck, selectionOnly = false) {
+    if (runner.busy) {
+      stopButton.hidden = false;
+      showFeedback('info', 'Python is still busy with a previous run. It stops by itself after at most 10 seconds, or press Stop.');
+      return;
+    }
+    let code = editor.value;
+    let lineOffset = 0;
+    if (selectionOnly) {
+      const selected = ed.getSelection();
+      if (!selected.text.trim()) {
+        showFeedback('info', 'Select some code in the editor first, then choose "Run selection".');
+        return;
+      }
+      code = dedentBlock(selected.text);
+      lineOffset = selected.startLine - 1;
+    }
+    if (withCheck && exercise) store.recordAttempt(storageKey);
+    else store.recordActivity();
+    clearOutput();
     setRunning(true);
+    const started = performance.now();
     try {
       const result = await runner.run({
-        code: editor.value,
+        code,
         stdin: stdinBox.value,
         check: withCheck ? exercise.check : null,
         files: exercise?.files ?? null,
         timeoutMs: withCheck ? CHECK_TIMEOUT_MS : RUN_TIMEOUT_MS,
         onOutput: appendOutput,
       });
-      renderResult(result, withCheck);
+      renderResult(result, withCheck, lineOffset, performance.now() - started, selectionOnly);
     } catch (error) {
       showFeedback('error', `Python could not run: ${error.message}. Reload the page to try again.`);
     } finally {
@@ -112,98 +169,81 @@ export function createWorkbench({ runner, store, storageKey, starter, stdin = ''
     }
   }
 
-  function renderResult(result, withCheck) {
+  function renderResult(result, withCheck, lineOffset, elapsed, selectionOnly) {
+    const took = formatSeconds(elapsed);
     if (result.status === 'timeout') {
+      runInfo.textContent = `⏱ Stopped after ${took}`;
       showFeedback('error', h('strong', null, 'Stopped. '), 'Your program ran for more than ', `${(withCheck ? CHECK_TIMEOUT_MS : RUN_TIMEOUT_MS) / 1000}`, ' seconds. Is there a loop that never ends?');
     } else if (result.status === 'stopped') {
+      runInfo.textContent = 'Stopped';
       showFeedback('info', 'Stopped.');
     } else if (result.status === 'error') {
-      showFeedback('error', h('strong', null, 'Your program stopped with an error. '), 'Read the last line of the message above: it says what went wrong, and the line above it shows where.');
-    } else if (withCheck && result.check) {
-      if (result.check.passed) {
-        store.markComplete(storageKey);
-        showFeedback('success', h('strong', null, '🎉 Correct! '), 'Nice work: exercise complete.');
-        onPass?.();
-      } else {
-        showFeedback('warn', h('strong', null, 'Not quite yet. '), String(result.check.message));
+      runInfo.textContent = `✗ Error after ${took}`;
+      if (/No input left/.test(result.error ?? '')) {
+        stdinWrap.open = true;
+        stdinBox.focus();
+        showFeedback('info', h('strong', null, 'Your program is asking for input. '), 'Type the answers into the Input box (one line per input() call), then run it again.');
+        return;
       }
-    } else if (!output.hasChildNodes()) {
-      showFeedback('info', 'Your program ran successfully but printed nothing. Use print() to show a value.');
+      const line = parseErrorLine(result.error);
+      if (line !== null) ed.markError(line + lineOffset);
+      showFeedback(
+        'error',
+        h('strong', null, 'Your program stopped with an error. '),
+        line !== null ? `Line ${line + lineOffset} is highlighted in the editor${selectionOnly ? ' (counting from the top of the whole file)' : ''}. ` : '',
+        'Read the last line of the message above: it says what went wrong.',
+      );
+    } else {
+      runInfo.textContent = `✓ Finished in ${took}`;
+      if (withCheck && result.check) {
+        if (result.check.passed) {
+          store.markComplete(storageKey);
+          showFeedback('success', h('strong', null, '🎉 Correct! '), 'Nice work: exercise complete.');
+          onPass?.();
+        } else {
+          showFeedback('warn', h('strong', null, 'Not quite yet. '), String(result.check.message));
+        }
+      } else if (!output.hasChildNodes()) {
+        showFeedback('info', 'Your program ran successfully but printed nothing. Use print() to show a value.');
+      }
     }
   }
 
   function reset() {
     editor.value = starter;
     stdinBox.value = stdin;
-    store.saveCode(storageKey, editor.value);
-    clear(output);
-    feedback.hidden = true;
+    scheduleSave();
+    clearOutput();
     editor.focus();
   }
 
-  // --- editor ergonomics -------------------------------------------------------------
-  let tabMovesFocus = false; // Esc then Tab lets keyboard users leave the editor
+  // ---- autosave -------------------------------------------------------------------------
   let saveTimer = 0;
-  editor.addEventListener('input', () => {
+  let dirty = false; // only save when the learner actually changed something (viewing must not bump "edited")
+  const flush = () => {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => store.saveCode(storageKey, editor.value), 400);
-  });
-  cleanups.push(() => {
+    if (!dirty) return;
+    dirty = false;
+    saver.save(editor.value);
+    saver.saveStdin?.(stdinBox.value);
+  };
+  const scheduleSave = () => {
+    dirty = true;
     clearTimeout(saveTimer);
-    store.saveCode(storageKey, editor.value);
-  });
-  editor.addEventListener('blur', () => {
-    tabMovesFocus = false;
-  });
-  editor.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      tabMovesFocus = true;
-    } else if (event.key === 'Tab' && !tabMovesFocus) {
-      event.preventDefault();
-      if (event.shiftKey) dedent();
-      else insert(INDENT);
-    } else if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
-      event.preventDefault();
-      insert('\n' + nextIndent());
-    } else if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-      event.preventDefault();
-      execute(false);
-    } else {
-      tabMovesFocus = false;
-    }
-  });
+    saveTimer = setTimeout(flush, 400);
+  };
+  editor.addEventListener('input', scheduleSave);
+  stdinBox.addEventListener('input', scheduleSave);
+  cleanups.push(flush);
 
-  function insert(text) {
-    editor.focus();
-    // execCommand keeps the browser's undo stack intact; fall back if unsupported.
-    if (!document.execCommand('insertText', false, text)) {
-      editor.setRangeText(text, editor.selectionStart, editor.selectionEnd, 'end');
-      editor.dispatchEvent(new Event('input'));
-    }
-  }
+  // If a run started elsewhere (e.g. before switching snippets) ends, don't leave a stale Stop button behind.
+  cleanups.push(
+    runner.subscribe(() => {
+      if (!runner.busy) stopButton.hidden = true;
+    }),
+  );
 
-  function currentLine() {
-    const start = editor.value.lastIndexOf('\n', editor.selectionStart - 1) + 1;
-    return { start, text: editor.value.slice(start, editor.selectionStart) };
-  }
-
-  function nextIndent() {
-    const { text } = currentLine();
-    const base = /^ */.exec(text)[0];
-    return text.trimEnd().endsWith(':') ? base + INDENT : base;
-  }
-
-  function dedent() {
-    const { start } = currentLine();
-    const lead = /^ {1,4}/.exec(editor.value.slice(start));
-    if (!lead) return;
-    const caret = editor.selectionStart;
-    editor.setRangeText('', start, start + lead[0].length, 'preserve');
-    editor.setSelectionRange(Math.max(start, caret - lead[0].length), Math.max(start, caret - lead[0].length));
-    editor.dispatchEvent(new Event('input'));
-  }
-
-  // --- optional exercise helpers -----------------------------------------------------
+  // ---- optional exercise helpers ----------------------------------------------------------
   let helpers = null;
   if (exercise) {
     const hintBox = h('p', { class: 'hint', hidden: true }, h('strong', null, 'Hint: '), ...inline(exercise.hint));
@@ -218,21 +258,50 @@ export function createWorkbench({ runner, store, storageKey, starter, stdin = ''
     button.setAttribute('aria-expanded', String(!box.hidden));
   }
 
+  // ---- editor options & shortcuts ------------------------------------------------------------
+  const autoCloseBox = h('input', { type: 'checkbox', id: `${editorId}-autoclose` });
+  autoCloseBox.checked = store.settings().autoClose;
+  autoCloseBox.addEventListener('change', () => store.updateSettings({ autoClose: autoCloseBox.checked }));
+  const options = h(
+    'details',
+    { class: 'editor-options' },
+    h('summary', null, 'Editor options & shortcuts'),
+    h('label', { class: 'check-option', for: `${editorId}-autoclose` }, autoCloseBox, ' Auto-close brackets and quotes'),
+    h(
+      'ul',
+      { class: 'shortcut-list' },
+      h('li', null, h('kbd', null, 'Ctrl'), '+', h('kbd', null, 'Enter'), ' run the program'),
+      selectionRun ? h('li', null, h('kbd', null, 'Ctrl'), '+', h('kbd', null, 'Shift'), '+', h('kbd', null, 'Enter'), ' run only the selected code') : null,
+      h('li', null, h('kbd', null, 'Tab'), ' / ', h('kbd', null, 'Shift'), '+', h('kbd', null, 'Tab'), ' indent / dedent (also several selected lines)'),
+      h('li', null, h('kbd', null, 'Ctrl'), '+', h('kbd', null, '/'), ' comment or uncomment the selected lines'),
+      h('li', null, h('kbd', null, 'Esc'), ' then ', h('kbd', null, 'Tab'), ' move to the next control (the editor otherwise keeps Tab)'),
+    ),
+  );
+
   const element = h(
     'section',
     { class: 'workbench', 'aria-label': 'Code editor' },
-    h('div', { class: 'toolbar' }, runButton, checkButton, stopButton, resetButton),
+    h('div', { class: 'toolbar' }, runButton, selectionButton, checkButton, stopButton, resetButton, h('span', { class: 'grow' }), smallerButton, largerButton),
     h('label', { class: 'sr-only', for: editorId }, 'Python code'),
-    editor,
+    ed.element,
     h('p', { id: `${editorId}-help`, class: 'muted small' }, 'Tab indents · Esc then Tab leaves the editor · Ctrl+Enter runs'),
-    h('details', { class: 'stdin-wrap', open: stdin ? true : null }, h('summary', null, 'Input for input()'), h('p', { class: 'muted small' }, 'One line per input() call.'), stdinBox),
-    h('h3', { class: 'console-title' }, 'Output'),
+    options,
+    stdinWrap,
+    h('div', { class: 'console-head' }, h('h3', { class: 'console-title' }, 'Output'), runInfo, h('span', { class: 'grow' }), h('button', { type: 'button', class: 'btn ghost small', onclick: copyOutput }, 'Copy'), h('button', { type: 'button', class: 'btn ghost small', onclick: clearOutput }, 'Clear')),
     output,
     feedback,
     helpers,
   );
 
-  return { element, editor, load(code) { editor.value = code; store.saveCode(storageKey, code); } };
+  return {
+    element,
+    editor,
+    focus: () => ed.focus(),
+    load(code) {
+      editor.value = code;
+      scheduleSave();
+    },
+  };
 }
 
 /** Read-only highlighted code sample with its own Run button and inline output. */

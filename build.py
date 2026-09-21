@@ -14,9 +14,11 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR / "content"))
 
+from examples import CATEGORIES, EXAMPLES  # noqa: E402
 from lessons import LESSONS, SECTIONS  # noqa: E402
 
 OUTPUT = BASE_DIR / "public" / "data" / "lessons.json"
+EXAMPLES_OUTPUT = BASE_DIR / "public" / "data" / "examples.json"
 ID_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 BLOCK_TYPES = {"p", "h", "list", "tip", "warn", "sec", "code", "codeonly", "output"}
 EXERCISE_STR_KEYS = ("prompt", "starter", "hint", "solution", "check")
@@ -112,11 +114,43 @@ def render() -> str:
     return json.dumps({"sections": build_sections(lessons), "lessons": lessons}, indent=1, ensure_ascii=False) + "\n"
 
 
+def build_examples() -> list[dict]:
+    seen: set[str] = set()
+    result = []
+    for example in EXAMPLES:
+        eid = example.get("id")
+        if not isinstance(eid, str) or not ID_PATTERN.fullmatch(eid):
+            fail(f"example id must be lowercase-kebab-case, got {eid!r}")
+        if eid in seen:
+            fail(f"duplicate example id {eid!r}")
+        seen.add(eid)
+        where = f"example {eid}"
+        if example.get("category") not in CATEGORIES:
+            fail(f"{where}: category must be one of {CATEGORIES}")
+        entry = {
+            "id": eid,
+            "title": clean_text(example["title"], f"{where} title"),
+            "category": example["category"],
+            "description": clean_text(example["description"], f"{where} description"),
+            "code": clean_text(example["code"], f"{where} code"),
+        }
+        if len(entry["title"]) > 40 or len(entry["description"]) > 140:
+            fail(f"{where}: title must be <= 40 and description <= 140 characters")
+        if "stdin" in example:
+            entry["stdin"] = clean_text(example["stdin"], f"{where} stdin")
+        result.append(entry)
+    return result
+
+
+def render_examples() -> str:
+    return json.dumps({"categories": CATEGORIES, "examples": build_examples()}, indent=1, ensure_ascii=False) + "\n"
+
+
 def main() -> int:
-    text = render()
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(text, encoding="utf-8", newline="\n")
-    print(f"Wrote {OUTPUT.relative_to(BASE_DIR)} ({len(LESSONS)} lessons)")
+    OUTPUT.write_text(render(), encoding="utf-8", newline="\n")
+    EXAMPLES_OUTPUT.write_text(render_examples(), encoding="utf-8", newline="\n")
+    print(f"Wrote {OUTPUT.relative_to(BASE_DIR)} ({len(LESSONS)} lessons) and {EXAMPLES_OUTPUT.relative_to(BASE_DIR)} ({len(EXAMPLES)} examples)")
     return 0
 
 

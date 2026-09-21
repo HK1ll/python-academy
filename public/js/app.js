@@ -1,9 +1,10 @@
 import { append, clear, h } from './dom.js';
 import { inline } from './markup.js';
 import { createRunner } from './runner.js';
-import { createStore, PLAYGROUND } from './storage.js';
+import { createStore } from './storage.js';
 import { createSnippet, createWorkbench, engineStatus, providedFiles } from './workbench.js';
 import { highlight } from './highlight.js';
+import { playgroundView } from './playground.js';
 import { formatDay, progressView } from './progress.js';
 
 const CALLOUT_LABELS = { tip: 'Tip: ', warn: 'Watch out: ', sec: 'Security lens: ' };
@@ -15,12 +16,7 @@ const engineSlot = document.getElementById('engine-slot');
 const footerSlot = document.getElementById('footer-slot');
 const skipLink = document.getElementById('skip-link');
 
-const PLAYGROUND_STARTER = `# Welcome to the Playground!
-# Write any Python here and press Run (or Ctrl+Enter).
-
-name = "world"
-print(f"Hello, {name}!")
-`;
+let playgroundNotice = null; // set when a lesson could not hand its code over (snippet limit reached)
 
 let lessons = [];
 let sections = [];
@@ -81,7 +77,8 @@ function render() {
     main.append(lessonView(lesson));
   } else if (route.name === 'playground') {
     title = 'Playground · Python Academy';
-    main.append(playgroundView());
+    main.append(playgroundView({ runner, store, cleanups, notice: playgroundNotice }));
+    playgroundNotice = null;
   } else if (route.name === 'progress') {
     title = 'My progress · Python Academy';
     main.append(progressView({ lessons, sections, store, onChange: render }));
@@ -99,8 +96,11 @@ function render() {
   firstRender = false;
 }
 
-function goToPlayground(code) {
-  store.saveCode(PLAYGROUND, code);
+/** "Edit in Playground": opens the lesson's example as a NEW snippet, so the learner's own work is never overwritten. */
+function goToPlayground(code, lessonTitle) {
+  const created = store.createSnippet({ name: `From lesson: ${lessonTitle}`, code });
+  if (created) store.setActiveSnippet(created.id);
+  else playgroundNotice = `You have ${store.maxSnippets} snippets, the maximum, so this example could not be added. Delete some in the Playground first.`;
   if (location.hash === '#/playground') render();
   else location.hash = '#/playground';
 }
@@ -203,7 +203,7 @@ function homeView() {
         'ul',
         null,
         h('li', null, h('strong', null, 'Your code never leaves your device.'), ' Python runs inside a sandboxed Web Worker in your browser (WebAssembly). There is no server that executes code.'),
-        h('li', null, h('strong', null, 'No accounts, cookies or tracking.'), ' Progress is saved only in this browser and can be erased any time from the footer.'),
+        h('li', null, h('strong', null, 'No accounts, cookies or tracking.'), ' Progress, code and snippets are saved only in this browser and can be erased any time from the footer.'),
         h('li', null, h('strong', null, 'Nothing third-party.'), ' A strict Content-Security-Policy blocks inline scripts and any outside resources; Python itself is served from this site and integrity-checked.'),
         h('li', null, h('strong', null, 'Runaway programs are stopped.'), ' Infinite loops end after 10 seconds and huge outputs are capped.'),
       ),
@@ -211,7 +211,7 @@ function homeView() {
   );
 }
 
-function renderBlock(block) {
+function renderBlock(block, lesson) {
   switch (block.type) {
     case 'p':
       return h('p', null, ...inline(block.text));
@@ -233,7 +233,7 @@ function renderBlock(block) {
     case 'output':
       return h('figure', { class: 'expected' }, h('figcaption', null, 'Output'), h('pre', { class: 'console', tabindex: '0' }, block.text));
     case 'code':
-      return createSnippet({ runner, code: block.text, onOpenInPlayground: goToPlayground, cleanups });
+      return createSnippet({ runner, code: block.text, onOpenInPlayground: (code) => goToPlayground(code, lesson.title), cleanups });
     default:
       return null;
   }
@@ -284,7 +284,7 @@ function lessonView(lesson) {
       h(
         'article',
         { class: 'lesson-body' },
-        lesson.blocks.map(renderBlock),
+        lesson.blocks.map((block) => renderBlock(block, lesson)),
         h(
           'nav',
           { class: 'pager', 'aria-label': 'Lesson navigation' },
@@ -297,16 +297,6 @@ function lessonView(lesson) {
   );
 }
 
-function playgroundView() {
-  const bench = createWorkbench({ runner, store, storageKey: PLAYGROUND, starter: PLAYGROUND_STARTER, cleanups });
-  return h(
-    'div',
-    { class: 'playground' },
-    h('header', { class: 'lesson-head' }, h('p', { class: 'kicker' }, 'Free practice'), h('h1', { tabindex: '-1' }, 'Playground'), h('p', { class: 'lead' }, 'Experiment freely. Your code is saved in this browser and runs only on your device. Files your program creates exist only while it runs.')),
-    bench.element,
-  );
-}
-
 // ---------------------------------------------------------------- footer & chrome
 
 function setupChrome() {
@@ -314,19 +304,20 @@ function setupChrome() {
   engineSlot.append(status);
 
   let armed = 0;
-  const resetButton = h('button', { type: 'button', class: 'btn ghost small' }, 'Erase my progress');
+  const ERASE_LABEL = 'Erase all my data';
+  const resetButton = h('button', { type: 'button', class: 'btn ghost small', title: 'Deletes your progress, saved code and Playground snippets from this browser' }, ERASE_LABEL);
   resetButton.addEventListener('click', () => {
     if (!armed) {
       resetButton.textContent = 'Click again to confirm';
       armed = window.setTimeout(() => {
         armed = 0;
-        resetButton.textContent = 'Erase my progress';
+        resetButton.textContent = ERASE_LABEL;
       }, 4000);
       return;
     }
     clearTimeout(armed);
     armed = 0;
-    resetButton.textContent = 'Erase my progress';
+    resetButton.textContent = ERASE_LABEL;
     store.clearAll();
     if (location.hash && location.hash !== '#/') location.hash = '#/';
     else render();
