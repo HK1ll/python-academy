@@ -28,7 +28,8 @@ Only Python 3.10+ is needed to serve it (standard library only). Nothing to inst
 | Clickjacking / MIME sniffing / referrer leaks | `frame-ancestors 'none'`, `X-Frame-Options`, `nosniff`, `Referrer-Policy: no-referrer`, COOP/CORP, restrictive `Permissions-Policy`. |
 | Infinite loops and print-bombs | Programs are killed after 10 s (20 s for checks) by terminating the worker; output is capped at 200,000 characters. |
 | Tampered browser storage | Saved progress is schema-validated on load (known lesson ids, size limits) and only ever rendered as text. |
-| Malicious progress-backup file | Import checks the app id, schema version and size (2 MB max), keeps only known lesson ids, real calendar dates and sane counts, only merges (never deletes progress or overwrites saved code), and shows everything as text. Covered by unit tests. |
+| Malicious progress-backup file | Import checks the app id, schema version and size (2 MB max), keeps only known lesson ids, real calendar dates, sane counts and well-formed snippets (id format, name and code length), only merges (never deletes progress or overwrites saved code and snippets), and shows everything as text. Covered by unit tests. |
+| Hostile snippet names, code or opened files | Names and code are only ever set with `textContent`/`value` (also in the highlight layer). Opened files must be text, under 200 KB and 50,000 characters. Download names are reduced to letters, digits, dots and dashes. Verified in a real browser. |
 | Slow-connection abuse | 15 s socket timeout; only `GET`/`HEAD` are accepted. |
 | Data collection | No accounts, cookies, analytics or network calls after load. Progress lives in `localStorage` and can be erased from the footer. |
 
