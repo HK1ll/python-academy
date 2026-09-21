@@ -1461,7 +1461,7 @@
   },
   {
    "id": "secure-classes",
-   "title": "Capstone: A Secure User Store",
+   "title": "Secure Passwords & Access Control",
    "summary": "Hash passwords with salts, compare safely and build a class that never keeps secrets in plain text.",
    "blocks": [
     {
@@ -1571,6 +1571,380 @@
     "hint": "In `__init__`: `self.salt = secrets.token_bytes(16)` and `self.password_hash = hash_password(password, self.salt)`. In `check_password`, hash the candidate with the same salt and compare with `hmac.compare_digest`. In `change_password`, verify `old` first, then check the length of `new`.",
     "solution": "import hashlib\nimport hmac\nimport secrets\n\nROUNDS = 1_000\n\n\nclass AuthenticationError(Exception):\n    \"\"\"Raised when a password check fails.\"\"\"\n\n\ndef hash_password(password, salt):\n    digest = salt + password.encode()\n    for _ in range(ROUNDS):\n        digest = hashlib.sha256(digest).digest()\n    return digest\n\n\nclass User:\n    MIN_LENGTH = 8\n\n    def __init__(self, name, password):\n        self.name = name\n        self.salt = secrets.token_bytes(16)\n        self.password_hash = hash_password(password, self.salt)\n\n    def check_password(self, candidate):\n        candidate_hash = hash_password(candidate, self.salt)\n        return hmac.compare_digest(candidate_hash, self.password_hash)\n\n    def change_password(self, old, new):\n        if not self.check_password(old):\n            raise AuthenticationError(\"current password is incorrect\")\n        if len(new) < self.MIN_LENGTH:\n            raise ValueError(\"new password must be at least 8 characters\")\n        self.salt = secrets.token_bytes(16)\n        self.password_hash = hash_password(new, self.salt)\n\n    def __repr__(self):\n        return f\"User(name={self.name!r})\"\n",
     "check": "secret = \"correct horse\"\nada = User(\"ada\", secret)\neve = User(\"eve\", secret)\nassert ada.name == \"ada\", \"User should keep the name.\"\nassert isinstance(ada.salt, bytes) and len(ada.salt) >= 16, \"salt should be at least 16 random bytes.\"\nassert isinstance(ada.password_hash, bytes), \"password_hash should be the bytes returned by hash_password.\"\nassert secret not in repr(ada) and secret not in str(vars(ada)), \"The plain-text password must not be stored anywhere on the object.\"\nassert repr(ada) == \"User(name='ada')\", f\"repr should be \\\"User(name='ada')\\\" but is {repr(ada)!r}.\"\nassert ada.salt != eve.salt, \"Each user needs their own random salt.\"\nassert ada.password_hash != eve.password_hash, \"Same password + different salts must give different hashes.\"\nassert ada.check_password(secret) is True, \"The right password should be accepted.\"\nassert ada.check_password(\"wrong guess\") is False, \"A wrong password should be rejected.\"\nassert \"compare_digest\" in _code, \"Compare the hashes with hmac.compare_digest, not ==.\"\ntry:\n    ada.change_password(\"wrong guess\", \"a brand new password\")\nexcept AuthenticationError:\n    pass\nelse:\n    raise AssertionError(\"change_password with the wrong old password should raise AuthenticationError.\")\ntry:\n    ada.change_password(secret, \"short\")\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError(\"A new password shorter than 8 characters should raise ValueError.\")\nassert ada.check_password(secret) is True, \"A failed change must leave the old password working.\"\nold_salt = ada.salt\nada.change_password(secret, \"brand new pass\")\nassert ada.check_password(\"brand new pass\") is True, \"The new password should work after changing it.\"\nassert ada.check_password(secret) is False, \"The old password must stop working after changing it.\"\nassert ada.salt != old_salt, \"Use a fresh salt when the password changes.\"\n"
+   }
+  },
+  {
+   "id": "regex",
+   "title": "Regular Expressions",
+   "summary": "Find, extract and validate text with patterns, the defender's log-reading tool.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "A **regular expression** (regex) is a pattern that describes text, such as \"three digits, then a dot\". Python's `re` module finds and extracts whatever matches. Regexes are the everyday tool for reading logs."
+    },
+    {
+     "type": "code",
+     "text": "import re\n\nlog = \"Failed password for admin from 203.0.113.5 port 22\"\n\nmatch = re.search(r\"from (\\d+\\.\\d+\\.\\d+\\.\\d+)\", log)\nprint(match.group(0))\nprint(match.group(1))"
+    },
+    {
+     "type": "output",
+     "text": "from 203.0.113.5\n203.0.113.5"
+    },
+    {
+     "type": "p",
+     "text": "`re.search` looks anywhere in the text and returns a match (or `None`). `group(0)` is everything that matched, and `group(1)` is the part inside the first pair of parentheses. Write patterns as **raw strings** (`r\"...\"`) so Python leaves the backslashes alone."
+    },
+    {
+     "type": "h",
+     "text": "Pattern building blocks"
+    },
+    {
+     "type": "list",
+     "items": [
+      "`\\d` a digit, `\\w` a letter, digit or underscore, `\\s` whitespace, `.` any single character",
+      "`+` one or more, `*` zero or more, `?` optional, `{2,5}` between 2 and 5",
+      "`[abc]` one of these characters, `[^abc]` anything except these, `[a-z]` a range",
+      "`^` start of the text, `$` end of the text, `( )` a group to capture, `|` means \"or\"",
+      "`\\.` a literal dot (a plain `.` means \"any character\")"
+     ]
+    },
+    {
+     "type": "code",
+     "text": "import re\n\ntext = \"Blocked 198.51.100.7, then 203.0.113.42 and 198.51.100.7 again\"\nips = re.findall(r\"\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\", text)\nprint(ips)\nprint(len(set(ips)))"
+    },
+    {
+     "type": "output",
+     "text": "['198.51.100.7', '203.0.113.42', '198.51.100.7']\n2"
+    },
+    {
+     "type": "p",
+     "text": "`re.findall` returns every match as a list. Turning it into a `set` removes the repeats, so you can count *distinct* addresses."
+    },
+    {
+     "type": "tip",
+     "text": "The example addresses here (`203.0.113.x`, `198.51.100.x`, `192.0.2.x`) are reserved for documentation and testing, so they never belong to a real person."
+    },
+    {
+     "type": "h",
+     "text": "Named groups"
+    },
+    {
+     "type": "p",
+     "text": "Give groups names with `(?P<name>...)` to pull out labelled pieces."
+    },
+    {
+     "type": "code",
+     "text": "import re\n\nline = \"Sep 20 10:15:01 Failed password for admin from 203.0.113.5\"\npattern = r\"Failed password for (?P<user>\\w+) from (?P<ip>[\\d.]+)\"\n\nmatch = re.search(pattern, line)\nprint(match.group(\"user\"))\nprint(match.group(\"ip\"))\nprint(match.groupdict())"
+    },
+    {
+     "type": "output",
+     "text": "admin\n203.0.113.5\n{'user': 'admin', 'ip': '203.0.113.5'}"
+    },
+    {
+     "type": "h",
+     "text": "Validation: fullmatch, not search"
+    },
+    {
+     "type": "p",
+     "text": "To check that a *whole* string is acceptable, use `re.fullmatch`. It demands that the pattern match the entire text. `re.search` succeeds if the pattern appears **anywhere**, which is a classic validation bug."
+    },
+    {
+     "type": "code",
+     "text": "import re\n\ndef is_valid_username(name):\n    return re.fullmatch(r\"[a-z][a-z0-9_]{2,15}\", name) is not None\n\nprint(is_valid_username(\"ada_99\"))\nprint(is_valid_username(\"9lives\"))\nprint(is_valid_username(\"bob; DROP TABLE\"))\n\nprint(bool(re.search(r\"[a-z]+\", \"ada; rm -rf /\")))\nprint(bool(re.fullmatch(r\"[a-z]+\", \"ada; rm -rf /\")))"
+    },
+    {
+     "type": "output",
+     "text": "True\nFalse\nFalse\nTrue\nFalse"
+    },
+    {
+     "type": "sec",
+     "text": "**Validate with an allow-list**: describe exactly what *is* allowed and reject everything else. Trying to list what is *bad* always misses something. And use `fullmatch`, so hostile text can't hide after a harmless-looking start."
+    },
+    {
+     "type": "h",
+     "text": "Untrusted input inside a pattern"
+    },
+    {
+     "type": "p",
+     "text": "If part of a pattern comes from a user, wrap it in `re.escape` so its special characters are treated as plain text."
+    },
+    {
+     "type": "code",
+     "text": "import re\n\nuser_input = \"1.2.3.4\"\npattern = re.escape(user_input)\nprint(pattern)\nprint(bool(re.fullmatch(pattern, \"1.2.3.4\")))\nprint(bool(re.fullmatch(pattern, \"1x2y3z4\")))"
+    },
+    {
+     "type": "output",
+     "text": "1\\.2\\.3\\.4\nTrue\nFalse"
+    },
+    {
+     "type": "warn",
+     "text": "A pattern with **nested repetition**, like `(a+)+$`, can take exponentially long on crafted input. This is called **ReDoS** (regular-expression denial of service). Keep patterns simple, avoid repeating a repeated group, and be careful with patterns that come from outside."
+    },
+    {
+     "type": "tip",
+     "text": "A regex like `\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}` also matches `999.999.999.999`. Regexes find text; they don't understand numbers. Use the `ipaddress` module (coming up) to validate real addresses."
+    }
+   ],
+   "exercise": {
+    "prompt": "Write `parse_failed_logins(text)`. `text` is a multi-line SSH log. Return a list of `(user, ip)` tuples, in order, for every **failed** login. Lines look like `... Failed password for admin from 203.0.113.5 port 22 ssh2`, and some say `Failed password for invalid user oracle from ...`. Ignore `Accepted` lines and anything else.",
+    "starter": "import re\n\n\ndef parse_failed_logins(text):\n    pass\n",
+    "hint": "Use `re.findall` with two capturing groups: `Failed password for (?:invalid user )?(\\w+) from ([\\d.]+)`. The `(?:...)` group is optional and not captured. With two groups, `findall` returns tuples.",
+    "solution": "import re\n\nPATTERN = re.compile(r\"Failed password for (?:invalid user )?(\\w+) from ([\\d.]+)\")\n\n\ndef parse_failed_logins(text):\n    return PATTERN.findall(text)\n",
+    "check": "log = (\n    \"Sep 20 10:15:01 sshd[101]: Failed password for admin from 203.0.113.5 port 22 ssh2\\n\"\n    \"Sep 20 10:15:09 sshd[101]: Accepted password for ada from 198.51.100.7 port 22 ssh2\\n\"\n    \"Sep 20 10:15:20 sshd[102]: Failed password for invalid user oracle from 203.0.113.5 port 22 ssh2\\n\"\n    \"Sep 20 10:15:44 cron[7]: session opened for user root\\n\"\n    \"Sep 20 10:16:00 sshd[103]: Failed password for root from 192.0.2.44 port 22 ssh2\\n\"\n)\nexpected = [(\"admin\", \"203.0.113.5\"), (\"oracle\", \"203.0.113.5\"), (\"root\", \"192.0.2.44\")]\ngot = parse_failed_logins(log)\nassert isinstance(got, list), f\"Return a list of (user, ip) tuples, not {got!r}.\"\nassert got == expected, f\"Expected {expected!r} but got {got!r}.\"\nassert parse_failed_logins(\"\") == [], \"An empty log should give an empty list.\"\nassert parse_failed_logins(\"Accepted password for ada from 198.51.100.7 port 22\") == [], \"Accepted logins must be ignored.\"\n"
+   }
+  },
+  {
+   "id": "collections-tools",
+   "title": "Sorting & Counting",
+   "summary": "Rank, pair up and tally data to spot the noisiest sources in a log.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Analysing logs mostly means answering \"which one is the most?\" Python has small, sharp tools for sorting, pairing and counting. Start with sorting by something other than the item itself."
+    },
+    {
+     "type": "code",
+     "text": "attempts = [(\"ada\", 3), (\"bob\", 9), (\"eve\", 5)]\n\nprint(sorted(attempts))\nprint(sorted(attempts, key=lambda pair: pair[1]))\nprint(sorted(attempts, key=lambda pair: pair[1], reverse=True))"
+    },
+    {
+     "type": "output",
+     "text": "[('ada', 3), ('bob', 9), ('eve', 5)]\n[('ada', 3), ('eve', 5), ('bob', 9)]\n[('bob', 9), ('eve', 5), ('ada', 3)]"
+    },
+    {
+     "type": "p",
+     "text": "`key=` tells `sorted` what to sort **by**. A `lambda` is a tiny nameless function written inline: `lambda pair: pair[1]` means \"given a pair, return its second item\". `reverse=True` flips the order."
+    },
+    {
+     "type": "h",
+     "text": "enumerate and zip"
+    },
+    {
+     "type": "code",
+     "text": "users = [\"ada\", \"bob\", \"eve\"]\n\nfor number, user in enumerate(users, start=1):\n    print(number, user)\n\nscores = [90, 72, 85]\nfor user, score in zip(users, scores):\n    print(user, score)\n\nprint(dict(zip(users, scores)))"
+    },
+    {
+     "type": "output",
+     "text": "1 ada\n2 bob\n3 eve\nada 90\nbob 72\neve 85\n{'ada': 90, 'bob': 72, 'eve': 85}"
+    },
+    {
+     "type": "p",
+     "text": "`enumerate` numbers the items as you loop. `zip` walks several lists in step, pairing up their items."
+    },
+    {
+     "type": "h",
+     "text": "Counter"
+    },
+    {
+     "type": "code",
+     "text": "from collections import Counter\n\nips = [\"203.0.113.5\", \"198.51.100.7\", \"203.0.113.5\", \"203.0.113.5\", \"192.0.2.44\", \"198.51.100.7\"]\ncounts = Counter(ips)\n\nprint(counts[\"203.0.113.5\"])\nprint(counts[\"10.0.0.1\"])\nprint(counts.most_common(2))"
+    },
+    {
+     "type": "output",
+     "text": "3\n0\n[('203.0.113.5', 3), ('198.51.100.7', 2)]"
+    },
+    {
+     "type": "p",
+     "text": "A `Counter` tallies how often each item appears. Missing items count as `0`, and `most_common(n)` gives the top `n`."
+    },
+    {
+     "type": "sec",
+     "text": "**Volume is a signal.** One address with hundreds of failed logins, or one user hit from dozens of places, stands out immediately once you count. Counting is the first step of almost every detection."
+    },
+    {
+     "type": "h",
+     "text": "defaultdict"
+    },
+    {
+     "type": "p",
+     "text": "A `defaultdict` creates a missing entry for you, so you can group things without checking first."
+    },
+    {
+     "type": "code",
+     "text": "from collections import defaultdict\n\nusers_by_ip = defaultdict(set)\nfor user, ip in [(\"admin\", \"192.0.2.1\"), (\"root\", \"192.0.2.1\"), (\"admin\", \"192.0.2.2\")]:\n    users_by_ip[ip].add(user)\n\nprint(sorted(users_by_ip[\"192.0.2.1\"]))\nprint(len(users_by_ip[\"192.0.2.2\"]))"
+    },
+    {
+     "type": "output",
+     "text": "['admin', 'root']\n1"
+    },
+    {
+     "type": "sec",
+     "text": "One source trying **many different usernames** is a classic sign of password spraying. Grouping by source and counting distinct usernames reveals it."
+    },
+    {
+     "type": "h",
+     "text": "Generator expressions"
+    },
+    {
+     "type": "p",
+     "text": "A comprehension without the brackets is a **generator expression**. You can pass it straight to `sum`, `max`, `any`, `all`, `Counter` and friends."
+    },
+    {
+     "type": "code",
+     "text": "print(sum(n * n for n in range(4)))\nprint(any(word == \"root\" for word in [\"ada\", \"root\"]))"
+    },
+    {
+     "type": "output",
+     "text": "14\nTrue"
+    }
+   ],
+   "exercise": {
+    "prompt": "Write `top_offenders(events, n)`. Each event is a dictionary like `{\"ip\": \"203.0.113.5\", \"success\": False}`. Count only the **failed** events per IP and return the top `n` as a list of `(ip, count)` tuples, biggest count first. When counts tie, put the IP that sorts first alphabetically first.",
+    "starter": "from collections import Counter\n\n\ndef top_offenders(events, n):\n    pass\n",
+    "hint": "`Counter(event[\"ip\"] for event in events if not event[\"success\"])` counts failures. Then sort `failures.items()` with `key=lambda item: (-item[1], item[0])` (a tuple sorts by its first item, then its second) and slice the first `n`.",
+    "solution": "from collections import Counter\n\n\ndef top_offenders(events, n):\n    failures = Counter(event[\"ip\"] for event in events if not event[\"success\"])\n    ranked = sorted(failures.items(), key=lambda item: (-item[1], item[0]))\n    return ranked[:n]\n",
+    "check": "def failed(ip):\n    return {\"ip\": ip, \"success\": False}\n\ndef ok(ip):\n    return {\"ip\": ip, \"success\": True}\n\nevents = (\n    [failed(\"203.0.113.5\")] * 3\n    + [failed(\"198.51.100.7\")] * 2 + [ok(\"198.51.100.7\")]\n    + [failed(\"192.0.2.44\")] * 2\n    + [ok(\"10.0.0.9\")]\n)\ngot = top_offenders(events, 2)\nassert got == [(\"203.0.113.5\", 3), (\"192.0.2.44\", 2)], f\"Expected [('203.0.113.5', 3), ('192.0.2.44', 2)] (tie at 2 goes to the lower IP) but got {got!r}.\"\nassert len(top_offenders(events, 10)) == 3, \"Only IPs with at least one failure should appear.\"\nassert top_offenders(events, 1) == [(\"203.0.113.5\", 3)], \"n=1 should return just the top offender.\"\nassert top_offenders([], 3) == [], \"No events means no offenders.\"\nassert top_offenders([ok(\"10.0.0.9\")], 3) == [], \"Successful logins must not be counted.\"\n"
+   }
+  },
+  {
+   "id": "networking",
+   "title": "Networking Concepts (Offline)",
+   "summary": "Parse and validate URLs, IP addresses and HTTP data, and learn to block unsafe destinations.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Networking is computers exchanging messages. The Python inside your browser can't open network connections (that's part of what keeps this app safe), so these lessons focus on **reading and validating** network data. That is the skill defenders use most, and the standard library does the heavy lifting."
+    },
+    {
+     "type": "h",
+     "text": "URLs"
+    },
+    {
+     "type": "code",
+     "text": "from urllib.parse import urlparse\n\nurl = urlparse(\"https://example.com:8443/login?next=/home#top\")\nprint(url.scheme)\nprint(url.hostname)\nprint(url.port)\nprint(url.path)\nprint(url.query)"
+    },
+    {
+     "type": "output",
+     "text": "https\nexample.com\n8443\n/login\nnext=/home"
+    },
+    {
+     "type": "p",
+     "text": "Never split URLs by hand with string tricks. Use `urlparse`: it follows the real rules, including the odd ones attackers exploit."
+    },
+    {
+     "type": "h",
+     "text": "IP addresses"
+    },
+    {
+     "type": "p",
+     "text": "The `ipaddress` module understands IPv4 and IPv6 addresses and networks (ranges written like `192.168.1.0/24`)."
+    },
+    {
+     "type": "code",
+     "text": "import ipaddress\n\nip = ipaddress.ip_address(\"192.168.1.20\")\nprint(ip.is_private)\nprint(ipaddress.ip_address(\"127.0.0.1\").is_loopback)\nprint(ipaddress.ip_address(\"8.8.8.8\").is_global)\n\nnetwork = ipaddress.ip_network(\"192.168.1.0/24\")\nprint(ip in network)\nprint(network.num_addresses)\n\ntry:\n    ipaddress.ip_address(\"999.1.1.1\")\nexcept ValueError:\n    print(\"Invalid address\")"
+    },
+    {
+     "type": "output",
+     "text": "True\nTrue\nTrue\nTrue\n256\nInvalid address"
+    },
+    {
+     "type": "p",
+     "text": "Unlike a regex, `ip_address` *understands* the numbers, so `999.1.1.1` is rejected. `is_global` is true only for addresses that are publicly routable on the internet."
+    },
+    {
+     "type": "h",
+     "text": "HTTP status codes"
+    },
+    {
+     "type": "code",
+     "text": "from http import HTTPStatus\n\nprint(HTTPStatus(404).phrase)\nprint(HTTPStatus.FORBIDDEN.value)\nprint(HTTPStatus(500).phrase)"
+    },
+    {
+     "type": "output",
+     "text": "Not Found\n403\nInternal Server Error"
+    },
+    {
+     "type": "p",
+     "text": "Codes starting with **2** mean success, **3** redirect, **4** the client's mistake and **5** the server's failure. In logs, many `401` or `403` answers from one address are a warning sign."
+    },
+    {
+     "type": "h",
+     "text": "Reading an HTTP request"
+    },
+    {
+     "type": "p",
+     "text": "An HTTP request is plain text: a request line, then headers, then a blank line. `*rest` collects the remaining items into a list."
+    },
+    {
+     "type": "code",
+     "text": "raw = \"GET /admin?user=ada HTTP/1.1\\r\\nHost: example.com\\r\\nUser-Agent: curl/8.0\\r\\n\\r\\n\"\n\nhead, _, _body = raw.partition(\"\\r\\n\\r\\n\")\nrequest_line, *header_lines = head.split(\"\\r\\n\")\nmethod, target, version = request_line.split(\" \")\n\nheaders = {}\nfor line in header_lines:\n    name, _, value = line.partition(\":\")\n    headers[name.strip().lower()] = value.strip()\n\nprint(method, target, version)\nprint(headers[\"host\"])\nprint(headers)"
+    },
+    {
+     "type": "output",
+     "text": "GET /admin?user=ada HTTP/1.1\nexample.com\n{'host': 'example.com', 'user-agent': 'curl/8.0'}"
+    },
+    {
+     "type": "sec",
+     "text": "**SSRF (server-side request forgery).** A service that fetches a URL on a user's behalf can be tricked into contacting *internal* addresses such as `http://127.0.0.1/`, `http://192.168.x.x/` or a cloud metadata address like `169.254.169.254`. Defenders check the scheme, the host, the port and the destination IP against an allow-list **before** fetching anything."
+    },
+    {
+     "type": "warn",
+     "text": "A host **name** can also point at a private address (and can change after you check it). A real defence must check the IP address the name actually resolves to, at the moment of connecting. The exercise below does the offline part of the job."
+    }
+   ],
+   "exercise": {
+    "prompt": "Write `check_url(url)` for a service that may only fetch safe web addresses. Return `True` only when: the scheme is `https`; there is a host name; there is **no** username or password in the URL; the port is absent, `443` or `8443`; and, if the host is an IP address, it is **globally routable** (not private, loopback or link-local). Anything malformed returns `False`; it must never raise.",
+    "starter": "from ipaddress import ip_address\nfrom urllib.parse import urlparse\n\n\ndef check_url(url):\n    pass\n",
+    "hint": "Parse with `urlparse` inside `try`/`except ValueError` (reading `.port` can raise). Check `.scheme`, `.hostname`, `.username`/`.password` and the port. To test whether the host is an IP, call `ip_address(hostname)` in another `try`: a ValueError means it's a normal name; otherwise return `address.is_global`.",
+    "solution": "from ipaddress import ip_address\nfrom urllib.parse import urlparse\n\nALLOWED_PORTS = {443, 8443}\n\n\ndef check_url(url):\n    try:\n        parts = urlparse(url)\n        port = parts.port\n    except ValueError:\n        return False\n    if parts.scheme != \"https\" or not parts.hostname:\n        return False\n    if parts.username or parts.password:\n        return False\n    if port is not None and port not in ALLOWED_PORTS:\n        return False\n    try:\n        address = ip_address(parts.hostname)\n    except ValueError:\n        return True  # a normal host name (a real system must also check what it resolves to)\n    return address.is_global\n",
+    "check": "allowed = [\"https://example.com/\", \"https://example.com:8443/x\", \"https://example.com:443/\", \"https://8.8.8.8/\"]\nblocked = [\n    \"http://example.com/\", \"ftp://example.com/\", \"example.com\", \"not a url\", \"\",\n    \"https://example.com:8080/\", \"https://example.com:99999/\",\n    \"https://127.0.0.1/\", \"https://192.168.1.5/admin\", \"https://10.0.0.1/\", \"https://169.254.169.254/latest/meta-data\",\n    \"https://[::1]/\", \"https://localhost@127.0.0.1/\",\n    \"https://user:pw@example.com/\", \"https://good.example.com@evil.example.net/\",\n    \"https:///path\",\n]\nfor url in allowed:\n    assert check_url(url) is True, f\"{url!r} should be allowed (True).\"\nfor url in blocked:\n    assert check_url(url) is False, f\"{url!r} should be rejected (False).\"\n"
+   }
+  },
+  {
+   "id": "project-log-analyzer",
+   "title": "Project: Log Analyzer",
+   "summary": "Put it all together: read a real-looking log file and build a small detection tool.",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Time for a real project. Security analysts read authentication logs to spot attacks. You will build a small **log analyzer** that combines almost everything you have learned: files, regular expressions, dataclasses, classes, `Counter` and `sorted`."
+    },
+    {
+     "type": "h",
+     "text": "Plan before you code"
+    },
+    {
+     "type": "list",
+     "items": [
+      "**Parse** each line into an `Event` (time, result, user, IP), skipping lines that don't fit.",
+      "**Count** failed logins per IP address.",
+      "**Flag** addresses with too many failures.",
+      "**Report** the findings and save them to a file."
+     ]
+    },
+    {
+     "type": "p",
+     "text": "The starting code below turns one log line into an `Event`. Run it, then read how it works."
+    },
+    {
+     "type": "code",
+     "text": "import re\nfrom dataclasses import dataclass\n\nLINE = re.compile(\n    r\"(?P<time>\\d\\d:\\d\\d:\\d\\d) (?P<result>Failed|Accepted) password \"\n    r\"for (?P<user>\\w+) from (?P<ip>[\\d.]+)\"\n)\n\n@dataclass(frozen=True)\nclass Event:\n    time: str\n    result: str\n    user: str\n    ip: str\n\ndef parse_line(line):\n    match = LINE.fullmatch(line)\n    return Event(**match.groupdict()) if match else None\n\nprint(parse_line(\"10:15:01 Failed password for admin from 203.0.113.5\"))\nprint(parse_line(\"this line is corrupted %%%\"))"
+    },
+    {
+     "type": "output",
+     "text": "Event(time='10:15:01', result='Failed', user='admin', ip='203.0.113.5')\nNone"
+    },
+    {
+     "type": "p",
+     "text": "`Event(**match.groupdict())` unpacks the dictionary of named groups into keyword arguments. `parse_line` returns `None` for a line it can't understand instead of crashing."
+    },
+    {
+     "type": "sec",
+     "text": "**Logs are untrusted, messy input**: they can be truncated, corrupted, or even contain text an attacker chose. Robust tools never crash on a strange line. They count it, skip it and carry on. Also, never *execute* or *trust* anything you read out of a log."
+    },
+    {
+     "type": "tip",
+     "text": "Read a file line by line with `for line in file:`, and `strip()` each line. Skip blank lines before parsing."
+    }
+   ],
+   "exercise": {
+    "prompt": "Build the class `LogAnalyzer(path)`. It reads the log file and keeps `events` (a list of `Event`) and `skipped` (how many non-blank lines could not be parsed). Blank lines are ignored entirely. Methods: `failures_by_ip()` returns a dictionary of IP to number of **failed** logins. `suspicious_ips(threshold=3)` returns a sorted list of IPs with at least `threshold` failures. `users_targeted(ip)` returns a sorted list of the distinct usernames that IP **failed** to log in as. `report()` returns the text shown in the starter comments. `write_report(path)` saves the report to a file.",
+    "starter": "import re\nfrom collections import Counter\nfrom dataclasses import dataclass\n\nLINE = re.compile(\n    r\"(?P<time>\\d\\d:\\d\\d:\\d\\d) (?P<result>Failed|Accepted) password \"\n    r\"for (?P<user>\\w+) from (?P<ip>[\\d.]+)\"\n)\n\n\n@dataclass(frozen=True)\nclass Event:\n    time: str\n    result: str\n    user: str\n    ip: str\n\n\ndef parse_line(line):\n    match = LINE.fullmatch(line)\n    return Event(**match.groupdict()) if match else None\n\n\nclass LogAnalyzer:\n    # __init__(self, path): fill self.events and self.skipped from the file\n    # failures_by_ip(self)            -> {\"203.0.113.5\": 4, ...}\n    # suspicious_ips(self, threshold=3) -> sorted list of IPs with >= threshold failures\n    # users_targeted(self, ip)        -> sorted list of distinct usernames that failed\n    # report(self) -> text like:\n    #     Parsed events: 9\n    #     Skipped lines: 1\n    #     Suspicious IPs (3+ failures): 203.0.113.5      (or \"none\")\n    # write_report(self, path)        -> save the report to a file\n    pass\n\n\nanalyzer = LogAnalyzer(\"auth.log\")\nprint(analyzer.report())\n",
+    "hint": "In `__init__`, loop over the file, `strip()` each line, `continue` on blank lines, call `parse_line`, and either append the event or add 1 to `self.skipped`. `failures_by_ip` can be `dict(Counter(e.ip for e in self.events if e.result == 'Failed'))`. The report joins the flagged IPs with `', '.join(...)` and falls back to `'none'` when the list is empty.",
+    "solution": "import re\nfrom collections import Counter\nfrom dataclasses import dataclass\n\nLINE = re.compile(\n    r\"(?P<time>\\d\\d:\\d\\d:\\d\\d) (?P<result>Failed|Accepted) password \"\n    r\"for (?P<user>\\w+) from (?P<ip>[\\d.]+)\"\n)\n\n\n@dataclass(frozen=True)\nclass Event:\n    time: str\n    result: str\n    user: str\n    ip: str\n\n\ndef parse_line(line):\n    match = LINE.fullmatch(line)\n    return Event(**match.groupdict()) if match else None\n\n\nclass LogAnalyzer:\n    def __init__(self, path):\n        self.events = []\n        self.skipped = 0\n        with open(path) as file:\n            for line in file:\n                line = line.strip()\n                if not line:\n                    continue\n                event = parse_line(line)\n                if event is None:\n                    self.skipped += 1\n                else:\n                    self.events.append(event)\n\n    def failures_by_ip(self):\n        return dict(Counter(e.ip for e in self.events if e.result == \"Failed\"))\n\n    def suspicious_ips(self, threshold=3):\n        return sorted(ip for ip, count in self.failures_by_ip().items() if count >= threshold)\n\n    def users_targeted(self, ip):\n        return sorted({e.user for e in self.events if e.ip == ip and e.result == \"Failed\"})\n\n    def report(self):\n        flagged = \", \".join(self.suspicious_ips()) or \"none\"\n        return (\n            f\"Parsed events: {len(self.events)}\\n\"\n            f\"Skipped lines: {self.skipped}\\n\"\n            f\"Suspicious IPs (3+ failures): {flagged}\"\n        )\n\n    def write_report(self, path):\n        with open(path, \"w\") as file:\n            file.write(self.report() + \"\\n\")\n\n\nanalyzer = LogAnalyzer(\"auth.log\")\nprint(analyzer.report())\n",
+    "check": "analyzer = LogAnalyzer(\"auth.log\")\nassert len(analyzer.events) == 9, f\"9 lines are valid events but analyzer.events has {len(analyzer.events)}.\"\nassert all(isinstance(event, Event) for event in analyzer.events), \"events must be a list of Event objects.\"\nassert analyzer.skipped == 1, f\"Exactly 1 non-blank line is corrupted but skipped is {analyzer.skipped}. (Blank lines must not count.)\"\nassert analyzer.failures_by_ip() == {\"203.0.113.5\": 4, \"198.51.100.7\": 1, \"192.0.2.44\": 2}, f\"failures_by_ip() is wrong: {analyzer.failures_by_ip()!r}\"\nassert analyzer.suspicious_ips() == [\"203.0.113.5\"], f\"suspicious_ips() should be ['203.0.113.5'] but is {analyzer.suspicious_ips()!r}.\"\nassert analyzer.suspicious_ips(threshold=2) == [\"192.0.2.44\", \"203.0.113.5\"], f\"suspicious_ips(threshold=2) should be sorted: got {analyzer.suspicious_ips(threshold=2)!r}.\"\nassert analyzer.suspicious_ips(threshold=99) == [], \"No IP has 99 failures.\"\nassert analyzer.users_targeted(\"203.0.113.5\") == [\"admin\", \"oracle\", \"root\"], f\"users_targeted is wrong: {analyzer.users_targeted('203.0.113.5')!r}\"\nassert analyzer.users_targeted(\"192.0.2.99\") == [], \"Successful logins don't count as targeted users.\"\nexpected = \"Parsed events: 9\\nSkipped lines: 1\\nSuspicious IPs (3+ failures): 203.0.113.5\"\nassert analyzer.report() == expected, f\"report() should be exactly:\\n{expected}\\nbut it is:\\n{analyzer.report()}\"\nanalyzer.write_report(\"report-out.txt\")\nwith open(\"report-out.txt\") as saved:\n    assert saved.read().strip() == expected, \"write_report() should save the report text to the file.\"\nwith open(\"empty.log\", \"w\") as handle:\n    handle.write(\"\\n\\n\")\nquiet = LogAnalyzer(\"empty.log\")\nassert quiet.events == [] and quiet.skipped == 0, \"An empty log has no events and skips nothing.\"\nassert quiet.report() == \"Parsed events: 0\\nSkipped lines: 0\\nSuspicious IPs (3+ failures): none\", f\"Unexpected report for an empty log: {quiet.report()!r}\"\n",
+    "files": {
+     "auth.log": "10:15:01 Failed password for admin from 203.0.113.5\n10:15:04 Failed password for root from 203.0.113.5\n10:15:07 Failed password for oracle from 203.0.113.5\n10:15:30 Accepted password for ada from 198.51.100.7\n10:16:02 Failed password for ada from 198.51.100.7\nthis line is corrupted %%%\n10:17:45 Failed password for admin from 192.0.2.44\n10:17:50 Failed password for admin from 192.0.2.44\n\n10:18:20 Accepted password for grace from 192.0.2.99\n10:19:00 Failed password for root from 203.0.113.5\n"
+    }
    }
   }
  ]
