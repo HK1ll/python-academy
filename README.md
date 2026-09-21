@@ -27,6 +27,7 @@ Only Python 3.10+ is needed to serve it (standard library only). Nothing to inst
 | Clickjacking / MIME sniffing / referrer leaks | `frame-ancestors 'none'`, `X-Frame-Options`, `nosniff`, `Referrer-Policy: no-referrer`, COOP/CORP, restrictive `Permissions-Policy`. |
 | Infinite loops and print-bombs | Programs are killed after 10 s (20 s for checks) by terminating the worker; output is capped at 200,000 characters. |
 | Tampered browser storage | Saved progress is schema-validated on load (known lesson ids, size limits) and only ever rendered as text. |
+| Malicious progress-backup file | Import checks the app id, schema version and size (2 MB max), keeps only known lesson ids, real calendar dates and sane counts, only merges (never deletes progress or overwrites saved code), and shows everything as text. Covered by unit tests. |
 | Slow-connection abuse | 15 s socket timeout; only `GET`/`HEAD` are accepted. |
 | Data collection | No accounts, cookies, analytics or network calls after load. Progress lives in `localStorage` and can be erased from the footer. |
 
@@ -105,8 +106,16 @@ tests/               unittest suites (lessons, harness, server security)
 ## Tests
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -v      # lessons, harness, server hardening, vendored files
+node --test tests/js/*.test.mjs              # progress storage: validation, streaks, import/export merge
 ```
+
+## Progress tracking
+
+The **My progress** page (`#/progress`) shows completion overall and per topic, a day streak, active
+days, answer attempts, and the status, attempts and completion date of every lesson. Progress is
+stored only in the browser; **Export progress** saves a JSON backup and **Import progress** merges
+one back in, so it can move between devices with no account.
 
 ## License
 

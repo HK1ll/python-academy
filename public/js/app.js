@@ -4,6 +4,7 @@ import { createRunner } from './runner.js';
 import { createStore, PLAYGROUND } from './storage.js';
 import { createSnippet, createWorkbench, engineStatus, providedFiles } from './workbench.js';
 import { highlight } from './highlight.js';
+import { formatDay, progressView } from './progress.js';
 
 const CALLOUT_LABELS = { tip: 'Tip: ', warn: 'Watch out: ', sec: 'Security lens: ' };
 
@@ -22,6 +23,7 @@ print(f"Hello, {name}!")
 `;
 
 let lessons = [];
+let sections = [];
 let byId = new Map();
 let store = null;
 let runner = null;
@@ -43,7 +45,18 @@ async function loadLessons() {
       Array.isArray(lesson.blocks) && lesson.exercise && typeof lesson.exercise.check === 'string';
     if (!valid) throw new Error('lessons.json contains an invalid lesson');
   }
-  return data.lessons;
+  // Sections group lessons in the sidebar/home/progress pages. If they're missing or inconsistent, fall back to one group.
+  const ids = data.lessons.map((lesson) => lesson.id);
+  const listed = Array.isArray(data.sections) ? data.sections.flatMap((s) => (s && Array.isArray(s.ids) ? s.ids : [])) : [];
+  const sectionsValid =
+    Array.isArray(data.sections) &&
+    data.sections.every((s) => s && typeof s.title === 'string' && Array.isArray(s.ids)) &&
+    listed.length === ids.length &&
+    ids.every((id) => listed.includes(id));
+  return {
+    lessons: data.lessons,
+    sections: sectionsValid ? data.sections : [{ title: 'Lessons', ids }],
+  };
 }
 
 // ---------------------------------------------------------------- routing
@@ -51,6 +64,7 @@ async function loadLessons() {
 function parseRoute() {
   const hash = location.hash.replace(/^#/, '');
   if (hash === '/playground') return { name: 'playground' };
+  if (hash === '/progress') return { name: 'progress' };
   const match = /^\/lesson\/([a-z0-9-]+)$/.exec(hash);
   if (match && byId.has(match[1])) return { name: 'lesson', id: match[1] };
   return { name: 'home' };
@@ -68,6 +82,9 @@ function render() {
   } else if (route.name === 'playground') {
     title = 'Playground · Python Academy';
     main.append(playgroundView());
+  } else if (route.name === 'progress') {
+    title = 'My progress · Python Academy';
+    main.append(progressView({ lessons, sections, store, onChange: render }));
   } else {
     main.append(homeView());
   }
@@ -97,23 +114,33 @@ function renderNav(route) {
     sidebar,
     h('p', { class: 'nav-progress' }, `${done} of ${lessons.length} lessons complete`),
     h('progress', { max: lessons.length, value: done, 'aria-label': 'Lessons completed' }),
-    h(
-      'ol',
-      { class: 'lesson-list' },
-      lessons.map((lesson) =>
+    h('a', { class: 'nav-link', href: '#/progress', 'aria-current': route.name === 'progress' ? 'page' : null }, '📈 My progress'),
+    sections.map((section) => {
+      const finished = section.ids.filter((id) => store.isComplete(id)).length;
+      return h(
+        'section',
+        { class: 'nav-section' },
+        h('h2', { class: 'nav-heading' }, section.title, h('span', { class: 'muted' }, `${finished}/${section.ids.length}`)),
         h(
-          'li',
-          null,
-          h(
-            'a',
-            { href: `#/lesson/${lesson.id}`, 'aria-current': route.name === 'lesson' && route.id === lesson.id ? 'page' : null },
-            h('span', { class: 'check', 'aria-hidden': 'true' }, store.isComplete(lesson.id) ? '✓' : ''),
-            h('span', null, lesson.title),
-            store.isComplete(lesson.id) ? h('span', { class: 'sr-only' }, '(completed)') : null,
-          ),
+          'ol',
+          { class: 'lesson-list' },
+          section.ids.map((id) => {
+            const lesson = byId.get(id);
+            return h(
+              'li',
+              null,
+              h(
+                'a',
+                { href: `#/lesson/${lesson.id}`, 'aria-current': route.name === 'lesson' && route.id === lesson.id ? 'page' : null },
+                h('span', { class: 'check', 'aria-hidden': 'true' }, store.isComplete(lesson.id) ? '✓' : ''),
+                h('span', null, lesson.title),
+                store.isComplete(lesson.id) ? h('span', { class: 'sr-only' }, '(completed)') : null,
+              ),
+            );
+          }),
         ),
-      ),
-    ),
+      );
+    }),
     h('a', { class: 'nav-link', href: '#/playground', 'aria-current': route.name === 'playground' ? 'page' : null }, '⚡ Playground'),
   );
 }
@@ -140,22 +167,30 @@ function homeView() {
     h(
       'section',
       { 'aria-labelledby': 'lessons-title' },
-      h('h2', { id: 'lessons-title' }, 'Lessons'),
-      h(
-        'ol',
-        { class: 'card-grid' },
-        lessons.map((lesson, index) =>
+      h('div', { class: 'section-title-row' }, h('h2', { id: 'lessons-title' }, 'Lessons'), h('a', { href: '#/progress' }, `${done} of ${lessons.length} complete · see my progress →`)),
+      sections.map((section) =>
+        h(
+          'div',
+          { class: 'home-section' },
+          h('h3', null, section.title),
           h(
-            'li',
-            null,
-            h(
-              'a',
-              { class: 'card lesson-card', href: `#/lesson/${lesson.id}` },
-              h('span', { class: 'num', 'aria-hidden': 'true' }, store.isComplete(lesson.id) ? '✓' : String(index + 1)),
-              h('span', { class: 'card-title' }, lesson.title),
-              h('span', { class: 'muted' }, lesson.summary),
-              store.isComplete(lesson.id) ? h('span', { class: 'sr-only' }, 'Completed') : null,
-            ),
+            'ol',
+            { class: 'card-grid' },
+            section.ids.map((id) => {
+              const lesson = byId.get(id);
+              return h(
+                'li',
+                null,
+                h(
+                  'a',
+                  { class: 'card lesson-card', href: `#/lesson/${lesson.id}` },
+                  h('span', { class: 'num', 'aria-hidden': 'true' }, store.isComplete(lesson.id) ? '✓' : String(lessons.indexOf(lesson) + 1)),
+                  h('span', { class: 'card-title' }, lesson.title),
+                  h('span', { class: 'muted' }, lesson.summary),
+                  store.isComplete(lesson.id) ? h('span', { class: 'sr-only' }, 'Completed') : null,
+                ),
+              );
+            }),
           ),
         ),
       ),
@@ -208,7 +243,13 @@ function lessonView(lesson) {
   const index = lessons.indexOf(lesson);
   const previous = lessons[index - 1];
   const next = lessons[index + 1];
-  const badge = h('span', { class: 'badge', hidden: !store.isComplete(lesson.id) }, '✓ Completed');
+  const badge = h('span', { class: 'badge', hidden: !store.isComplete(lesson.id) });
+  function updateBadge() {
+    const date = store.completedAt(lesson.id);
+    badge.hidden = !store.isComplete(lesson.id);
+    badge.textContent = date ? `✓ Completed on ${formatDay(date)}` : '✓ Completed';
+  }
+  updateBadge();
   const nextSlot = h('div', { class: 'next-cta' });
 
   function updateNextCta() {
@@ -227,7 +268,7 @@ function lessonView(lesson) {
     exercise: lesson.exercise,
     cleanups,
     onPass() {
-      badge.hidden = false;
+      updateBadge();
       updateNextCta();
       renderNav({ name: 'lesson', id: lesson.id });
     },
@@ -321,7 +362,7 @@ async function boot() {
     return;
   }
   try {
-    lessons = await loadLessons();
+    ({ lessons, sections } = await loadLessons());
   } catch (error) {
     clear(main);
     main.append(h('div', { class: 'card' }, h('h1', { tabindex: '-1' }, 'Could not load the lessons'), h('p', null, String(error.message))));

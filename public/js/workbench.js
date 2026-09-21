@@ -90,6 +90,8 @@ export function createWorkbench({ runner, store, storageKey, starter, stdin = ''
 
   async function execute(withCheck) {
     if (runner.busy) return;
+    if (withCheck && exercise) store.recordAttempt(storageKey);
+    else store.recordActivity();
     clear(output);
     feedback.hidden = true;
     setRunning(true);

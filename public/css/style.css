@@ -251,6 +251,49 @@ pre.code code { background: none; padding: 0; font-size: inherit; }
 .provided-file { margin: 0.6rem 0 0; }
 .provided-file figcaption { font: 0.8rem var(--mono); color: var(--muted); margin-bottom: 0.2rem; }
 
+/* ---------- navigation sections ---------- */
+.nav-link { margin: 0.25rem 0; }
+.nav-section { margin-top: 0.9rem; }
+.nav-heading {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin: 0 0 0.25rem; padding: 0 0.6rem;
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+}
+.nav-section .lesson-list { margin-bottom: 0; }
+.home-section { margin-top: 1.5rem; }
+.home-section h3 { margin: 0 0 0.75rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.section-title-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5rem 1rem; }
+.section-title-row h2 { margin-bottom: 0.25em; }
+
+/* ---------- progress page ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1rem; margin-bottom: 0.5rem; }
+.stat { display: flex; flex-direction: column; gap: 0.15rem; padding: 1rem 1.1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.stat-wide { grid-column: 1 / -1; gap: 0.5rem; align-items: flex-start; }
+.stat-wide progress { height: 0.85rem; margin: 0; }
+.stat-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.stat-value { font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
+.stat-percent { color: var(--accent); }
+.section-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.section-row { display: grid; grid-template-columns: 1fr auto; gap: 0.15rem 1rem; align-items: baseline; }
+.section-row progress { grid-column: 1 / -1; margin: 0; }
+.section-name { font-weight: 600; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.progress-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.progress-table th, .progress-table td { padding: 0.55rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.progress-table thead th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--surface-2); }
+.progress-table tbody tr:last-child td { border-bottom: 0; }
+.progress-table .group-row th { background: var(--surface-2); font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.progress-table .num-cell { color: var(--muted); width: 2.5rem; }
+.pill { display: inline-block; padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+.pill.done { background: var(--ok-bg); color: var(--ok); }
+.pill.started { background: var(--warn-bg); color: var(--warn); }
+.pill.todo { background: var(--surface-2); color: var(--muted); }
+.backup { margin-top: 2rem; }
+.backup h2 { margin-top: 0; }
+.backup-message { margin: 0.75rem 0 0; padding: 0.6rem 0.9rem; border-radius: 8px; border-left: 4px solid; }
+.backup-message[data-kind="success"] { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.backup-message[data-kind="error"] { background: var(--err-bg); border-color: var(--err); color: var(--err); }
+
 /* ---------- responsive ---------- */
 @media (min-width: 1150px) {
   .lesson-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: start; }

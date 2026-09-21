@@ -50,6 +50,27 @@ def out(text):
     return {"type": "output", "text": text}
 
 
+# Course outline: groups lessons for the sidebar, the home page and the progress page.
+# Every lesson id must appear in exactly one section (build.py enforces this).
+SECTIONS = [
+    {
+        "title": "Python Basics",
+        "ids": [
+            "hello-world", "variables", "numbers", "strings", "conditionals", "lists",
+            "loops", "dictionaries", "functions", "comprehensions", "errors",
+        ],
+    },
+    {"title": "Modules & Files", "ids": ["modules", "files", "data-files", "own-modules"]},
+    {
+        "title": "Object-Oriented Programming",
+        "ids": ["classes", "class-design", "special-methods", "inheritance", "abstract-composition", "dataclasses-enums"],
+    },
+    {
+        "title": "Programming for Security",
+        "ids": ["secure-classes", "regex", "collections-tools", "networking", "project-log-analyzer"],
+    },
+]
+
 LESSONS = [
     # ------------------------------------------------------------------ 1
     {

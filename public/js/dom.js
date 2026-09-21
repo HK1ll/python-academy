@@ -6,6 +6,7 @@ const PLAIN_ATTRS = new Set([
   'class', 'id', 'type', 'role', 'title', 'for', 'name', 'rows', 'cols', 'placeholder',
   'disabled', 'hidden', 'tabindex', 'spellcheck', 'autocomplete', 'autocapitalize',
   'autocorrect', 'open', 'value', 'min', 'max', 'wrap', 'lang', 'href', 'readonly',
+  'accept', 'scope', 'colspan',
 ]);
 
 export function h(tag, props, ...children) {

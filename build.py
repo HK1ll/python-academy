@@ -14,7 +14,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR / "content"))
 
-from lessons import LESSONS  # noqa: E402
+from lessons import LESSONS, SECTIONS  # noqa: E402
 
 OUTPUT = BASE_DIR / "public" / "data" / "lessons.json"
 ID_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -90,8 +90,26 @@ def build() -> list[dict]:
     return result
 
 
+def build_sections(lessons: list[dict]) -> list[dict]:
+    """Every lesson must be in exactly one section, and sections must follow lesson order."""
+    order = [lesson["id"] for lesson in lessons]
+    listed = [lesson_id for section in SECTIONS for lesson_id in section["ids"]]
+    if sorted(listed) != sorted(order):
+        missing = sorted(set(order) - set(listed))
+        unknown = sorted(set(listed) - set(order))
+        duplicated = sorted({i for i in listed if listed.count(i) > 1})
+        fail(f"SECTIONS must list every lesson exactly once (missing={missing}, unknown={unknown}, duplicated={duplicated})")
+    if listed != order:
+        fail("SECTIONS must list lessons in the same order as LESSONS")
+    return [
+        {"title": clean_text(section["title"], "section title"), "ids": list(section["ids"])}
+        for section in SECTIONS
+    ]
+
+
 def render() -> str:
-    return json.dumps({"lessons": build()}, indent=1, ensure_ascii=False) + "\n"
+    lessons = build()
+    return json.dumps({"sections": build_sections(lessons), "lessons": lessons}, indent=1, ensure_ascii=False) + "\n"
 
 
 def main() -> int:

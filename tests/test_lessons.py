@@ -41,6 +41,12 @@ class LessonContent(unittest.TestCase):
                 passed = result["status"] == "ok" and result["check"]["passed"]
                 self.assertFalse(passed, "the untouched starter code must not pass its own check")
 
+    def test_sections_list_every_lesson_once_in_order(self):
+        data = json.loads((BASE / "public" / "data" / "lessons.json").read_text(encoding="utf-8"))
+        ids = [lesson["id"] for lesson in data["lessons"]]
+        self.assertEqual([i for section in data["sections"] for i in section["ids"]], ids)
+        self.assertTrue(all(section["title"].strip() for section in data["sections"]))
+
     def test_display_only_examples_are_valid_python(self):
         found = 0
         for lesson in LESSONS:
