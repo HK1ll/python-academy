@@ -202,6 +202,13 @@ class HarnessBehaviour(unittest.TestCase):
         result, _, _ = run('open("out.txt", "w").write("hi")', check='assert open("out.txt").read() == "hi"')
         self.assertTrue(result["check"]["passed"], result["check"])
 
+    def test_logging_state_resets_between_runs(self):
+        code = 'import logging, sys\nlogging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", stream=sys.stdout)\nlogging.info("hi")\n'
+        _, out1, _ = run(code)
+        _, out2, _ = run(code)
+        self.assertIn("INFO: hi", out1)
+        self.assertIn("INFO: hi", out2, "a second run must not be silenced by the first run's logging handler")
+
     def test_run_again_uses_fresh_input(self):
         code = "print(int(input()) * 2)"
         result, _, _ = run(code, "1", check='assert run_again("21").strip() == "42"')

@@ -5,6 +5,7 @@ Kept as a plain Python file (no Pyodide imports) so it can be unit-tested with C
 import builtins
 import json
 import linecache
+import logging
 import os
 import re
 import shutil
@@ -188,6 +189,12 @@ def _execute(code, stdin_lines, channel, echo):
     sys.stdout = _Stream(channel, "stdout")
     sys.stderr = _Stream(channel, "stderr")
     builtins.input = _make_input(stdin_lines, channel, echo)
+    # The `logging` module is a singleton that survives between runs (only the namespace is
+    # fresh). Without this, a learner's logging.basicConfig() would only ever take effect on
+    # the first run, and later runs would try to write through a stream object from a run
+    # that already ended.
+    logging.root.handlers.clear()
+    logging.root.setLevel(logging.WARNING)
     error = None
     try:
         exec(compile(code, FILENAME, "exec"), namespace)

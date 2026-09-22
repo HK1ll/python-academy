@@ -1,10 +1,10 @@
 # Python Academy
 
-An interactive web app for learning Python: 32 lessons in five sections (basics; modules and
+An interactive web app for learning Python: 37 lessons in six sections (basics; modules and
 files; object-oriented programming; intermediate Python with generators and decorators;
-and programming for security: hashing, regular expressions, encoding, integrity, time-based
-detection and a final Log Analyzer project), runnable examples, auto-checked exercises and
-a free Playground. Python runs **inside the learner's browser**
+programming for security, ending in a Log Analyzer project; and building real tools & apps —
+CLI tools, config/logging, automated testing, GUI concepts, and a capstone interactive
+security toolkit), runnable examples, auto-checked exercises and a free Playground. Python runs **inside the learner's browser**
 (Pyodide/WebAssembly in a Web Worker), so there is no server that executes code.
 
 ## Run it
@@ -104,6 +104,7 @@ tests/               unittest suites (lessons, harness, server security)
 3. `python build.py` to regenerate `public/data/lessons.json`.
 4. `python -m unittest discover -s tests` verifies every solution passes its check,
    every starter fails it, and every `output` block matches what the code really prints.
+   `content/lessons.py`'s `SECTIONS` list must name every lesson exactly once, in lesson order.
 
 ## Tests
 

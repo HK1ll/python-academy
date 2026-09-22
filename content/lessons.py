@@ -73,6 +73,10 @@ SECTIONS = [
             "encoding", "integrity", "time-detection", "project-log-analyzer",
         ],
     },
+    {
+        "title": "Building Real Tools & Apps",
+        "ids": ["cli-tools", "app-structure", "testing", "gui-concepts", "security-toolkit"],
+    },
 ]
 
 LESSONS = [
@@ -4245,6 +4249,802 @@ with open("empty.log", "w") as handle:
 quiet = LogAnalyzer("empty.log")
 assert quiet.events == [] and quiet.skipped == 0, "An empty log has no events and skips nothing."
 assert quiet.report() == "Parsed events: 0\\nSkipped lines: 0\\nSuspicious IPs (3+ failures): none", f"Unexpected report for an empty log: {quiet.report()!r}"
+""",
+        },
+    },
+    # ------------------------------------------------------------------ cli-tools
+    {
+        "id": "cli-tools",
+        "title": "Command-Line Tools",
+        "summary": "Read flags, options and subcommands with argparse, the way real programs do.",
+        "blocks": [
+            p(
+                "Programs run from a terminal read their input from **command-line arguments**: the words after the "
+                "program's name, like `python backup.py --verbose files/`. Python's built-in `argparse` module turns "
+                "those words into ordinary Python values."
+            ),
+            code(
+                """\
+import argparse
+
+parser = argparse.ArgumentParser(description="Greet someone")
+parser.add_argument("name")
+
+args = parser.parse_args(["Ada"])
+print(args.name)
+print(type(args))"""
+            ),
+            out(
+                """\
+Ada
+<class 'argparse.Namespace'>"""
+            ),
+            p(
+                "`parser.parse_args()` normally reads the real command line automatically. This app has no real "
+                "command line, so the examples pass a list of words instead, exactly like typing `python program.py Ada` would."
+            ),
+            h("Flags and options"),
+            code(
+                """\
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("name")
+parser.add_argument("--shout", action="store_true")
+parser.add_argument("--times", type=int, default=1)
+
+args = parser.parse_args(["ada", "--shout", "--times", "3"])
+print(args.name, args.shout, args.times)
+
+args2 = parser.parse_args(["bob"])
+print(args2.name, args2.shout, args2.times)"""
+            ),
+            out(
+                """\
+ada True 3
+bob False 1"""
+            ),
+            p("`action=\"store_true\"` makes a flag that needs no value: present means `True`, absent means `False`. `type=int` converts the text automatically, and rejects anything that isn't a whole number."),
+            h("Choices, and handling a bad value"),
+            code(
+                """\
+import argparse
+
+
+class QuietParser(argparse.ArgumentParser):
+    # By default, an invalid argument makes argparse print its own message and exit the
+    # whole program. Overriding error() lets a larger app catch the problem itself instead.
+    def error(self, message):
+        raise ValueError(message)
+
+
+parser = QuietParser()
+parser.add_argument("--level", choices=["low", "medium", "high"], default="medium")
+
+args = parser.parse_args(["--level", "high"])
+print(args.level)
+
+try:
+    parser.parse_args(["--level", "extreme"])
+except ValueError:
+    print("Rejected: 'extreme' is not a valid choice")"""
+            ),
+            out(
+                """\
+high
+Rejected: 'extreme' is not a valid choice"""
+            ),
+            sec(
+                "**Validate at the boundary, again.** `choices=[...]` and `type=int` reject bad input before your "
+                "program's real logic ever runs, the same allow-list discipline as the `@property` setters and "
+                "`Enum` conversions earlier in the course."
+            ),
+            h("Subcommands"),
+            p("One program can offer several **subcommands**, each with its own options, the way `git commit` and `git push` share one `git` but behave completely differently."),
+            code(
+                """\
+import argparse
+
+
+class QuietParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ValueError(message)
+
+
+parser = QuietParser(prog="toolkit")
+subparsers = parser.add_subparsers(dest="command")
+
+scan_parser = subparsers.add_parser("scan")
+scan_parser.add_argument("target")
+
+report_parser = subparsers.add_parser("report")
+report_parser.add_argument("--format", choices=["text", "json"], default="text")
+
+
+def run(argv):
+    args = parser.parse_args(argv)
+    if args.command == "scan":
+        return f"Scanning {args.target}..."
+    elif args.command == "report":
+        return f"Building a {args.format} report"
+    return "No command given"
+
+
+print(run(["scan", "10.0.0.5"]))
+print(run(["report", "--format", "json"]))
+print(run([]))"""
+            ),
+            out(
+                """\
+Scanning 10.0.0.5...
+Building a json report
+No command given"""
+            ),
+            tip("On your own computer, call `parser.parse_args()` with no list at all, and argparse reads the real command line (`sys.argv[1:]`) for you."),
+            example(
+                """\
+import argparse
+
+
+def main():
+    parser = argparse.ArgumentParser(description="A tiny backup tool")
+    parser.add_argument("source")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would happen, but change nothing")
+    args = parser.parse_args()          # reads sys.argv for real
+
+    print(f"Backing up {args.source}" + (" (dry run)" if args.dry_run else ""))
+
+
+if __name__ == "__main__":
+    main()"""
+            ),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write `build_parser()`, returning an `ArgumentParser` with: a positional argument `name`; a flag "
+                "`--shout` (`action=\"store_true\"`); and `--times` (`type=int`, `default=1`). Then write `greet(args)`, "
+                "returning a **list** of greeting strings: `f\"Hello, {name}!\"` (or shouted in capitals) repeated `times` times."
+            ),
+            "starter": "import argparse\n\n\ndef build_parser():\n    pass\n\n\ndef greet(args):\n    pass\n",
+            "hint": "`parser.add_argument(\"name\")`, `parser.add_argument(\"--shout\", action=\"store_true\")`, `parser.add_argument(\"--times\", type=int, default=1)`. In `greet`, build one message (upper-cased with `.upper()` if `args.shout`) and return `[message] * args.times`.",
+            "solution": (
+                "import argparse\n\n\n"
+                "def build_parser():\n"
+                "    parser = argparse.ArgumentParser()\n"
+                '    parser.add_argument("name")\n'
+                '    parser.add_argument("--shout", action="store_true")\n'
+                '    parser.add_argument("--times", type=int, default=1)\n'
+                "    return parser\n\n\n"
+                "def greet(args):\n"
+                '    message = f"Hello, {args.name}!"\n'
+                "    if args.shout:\n"
+                "        message = message.upper()\n"
+                "    return [message] * args.times\n"
+            ),
+            "check": """\
+parser = build_parser()
+assert greet(parser.parse_args(["ada"])) == ["Hello, ada!"], f"got {greet(parser.parse_args(['ada']))!r}"
+assert greet(parser.parse_args(["ada", "--shout"])) == ["HELLO, ADA!"], f"got {greet(parser.parse_args(['ada', '--shout']))!r}"
+assert greet(parser.parse_args(["ada", "--times", "3"])) == ["Hello, ada!"] * 3, "the --times value should repeat the message."
+combo = parser.parse_args(["ada", "--shout", "--times", "2"])
+assert greet(combo) == ["HELLO, ADA!"] * 2, f"got {greet(combo)!r}"
+default_args = parser.parse_args(["bob"])
+assert default_args.times == 1 and default_args.shout is False, "--times should default to 1 and --shout to False."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ app-structure
+    {
+        "id": "app-structure",
+        "title": "Config Files & Logging",
+        "summary": "Keep settings out of your code, and replace scattered print() calls with real logging.",
+        "blocks": [
+            p(
+                "Real projects are more than one file (you've already split code across files in **Your Own Modules**). "
+                "The next ingredients are settings that don't belong baked into code, and messages that explain what "
+                "a program is doing while it runs."
+            ),
+            h("Configuration files"),
+            p("Hard-coding settings means changing code every time they change. A config file keeps them separate. `configparser` reads the familiar `[section]` / `key = value` format used by many real tools."),
+            code(
+                """\
+import configparser
+
+with open("app.ini", "w") as file:
+    file.write('''[app]
+name = Python Academy
+debug = yes
+max_retries = 3
+''')
+
+config = configparser.ConfigParser()
+config.read("app.ini")
+
+print(config["app"]["name"])
+print(config.getboolean("app", "debug"))
+print(config.getint("app", "max_retries"))"""
+            ),
+            out(
+                """\
+Python Academy
+True
+3"""
+            ),
+            p("`getboolean`/`getint`/`getfloat` convert the text for you, and understand common spellings like `yes`/`no` and `on`/`off`."),
+            h("Logging instead of print"),
+            p("`print()` is fine for a small script. A real tool needs to say **how important** each message is, and let the person running it choose what to see. That's what the `logging` module is for."),
+            code(
+                """\
+import logging
+import sys
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", stream=sys.stdout)
+
+logging.debug("Loaded config (hidden: below INFO level)")
+logging.info("Starting up")
+logging.warning("Config file is missing max_retries; using the default")
+logging.error("Could not reach the server")"""
+            ),
+            out(
+                """\
+INFO: Starting up
+WARNING: Config file is missing max_retries; using the default
+ERROR: Could not reach the server"""
+            ),
+            sec("Logging lets you turn on detailed **DEBUG** output only while investigating an incident, without editing code or drowning normal operation in noise."),
+            h("Levels, low to high"),
+            items(
+                "`DEBUG` — detailed diagnostic information, usually hidden",
+                "`INFO` — a normal event worth a record",
+                "`WARNING` — something unexpected, but the program continues",
+                "`ERROR` — a real problem: something failed",
+                "`CRITICAL` — the program probably can't continue",
+            ),
+            tip("Call `logging.basicConfig(level=...)` once, near the start of your program, then use `logging.info(...)`, `logging.warning(...)` and so on everywhere else."),
+            warn("`basicConfig()` only takes effect the **first** time it's called in a running program; calling it again does nothing by default. Real tools call it exactly once, right at startup."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write `parse_settings(ini_text)`. It reads the `[app]` section of the given INI text and returns a dictionary "
+                "`{\"debug\": <bool>, \"retries\": <int>}` from its `debug` and `retries` keys. Then write `log_level(settings)`, "
+                "returning `logging.DEBUG` when `settings[\"debug\"]` is true, otherwise `logging.INFO`."
+            ),
+            "starter": "import configparser\nimport logging\n\n\ndef parse_settings(ini_text):\n    pass\n\n\ndef log_level(settings):\n    pass\n",
+            "hint": "`configparser.ConfigParser().read_string(ini_text)`, then `parser.getboolean(\"app\", \"debug\")` and `parser.getint(\"app\", \"retries\")`.",
+            "solution": (
+                "import configparser\nimport logging\n\n\n"
+                "def parse_settings(ini_text):\n"
+                "    parser = configparser.ConfigParser()\n"
+                "    parser.read_string(ini_text)\n"
+                "    return {\n"
+                '        "debug": parser.getboolean("app", "debug"),\n'
+                '        "retries": parser.getint("app", "retries"),\n'
+                "    }\n\n\n"
+                "def log_level(settings):\n"
+                '    return logging.DEBUG if settings["debug"] else logging.INFO\n'
+            ),
+            "check": """\
+settings = parse_settings("[app]\\ndebug = yes\\nretries = 5\\n")
+assert settings == {"debug": True, "retries": 5}, f"got {settings!r}"
+assert log_level(settings) == logging.DEBUG, "debug=yes should give logging.DEBUG."
+settings2 = parse_settings("[app]\\ndebug = no\\nretries = 2\\n")
+assert settings2 == {"debug": False, "retries": 2}, f"got {settings2!r}"
+assert log_level(settings2) == logging.INFO, "debug=no should give logging.INFO."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ testing
+    {
+        "id": "testing",
+        "title": "Testing Your Code",
+        "summary": "Write automated tests with unittest instead of checking things by hand.",
+        "blocks": [
+            p(
+                "Running a program by hand to see if it still works doesn't scale, and it's easy to forget a case. An "
+                "**automated test** checks your code for you, every time, in a fraction of a second. Python's built-in "
+                "`unittest` module is one way to write them."
+            ),
+            code(
+                """\
+import io
+import unittest
+
+
+def divide(a, b):
+    if b == 0:
+        raise ValueError("cannot divide by zero")
+    return a / b
+
+
+class DivideTests(unittest.TestCase):
+    def test_normal_division(self):
+        self.assertEqual(divide(10, 2), 5)
+
+    def test_division_by_zero_raises(self):
+        with self.assertRaises(ValueError):
+            divide(1, 0)
+
+
+suite = unittest.TestLoader().loadTestsFromTestCase(DivideTests)
+result = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
+print("Ran", result.testsRun, "tests")
+print("All passed:", result.wasSuccessful())"""
+            ),
+            out(
+                """\
+Ran 2 tests
+All passed: True"""
+            ),
+            p(
+                "A test class inherits from `unittest.TestCase`. Each method starting with `test_` is one test. "
+                "`assertEqual` checks a value; `assertRaises` checks that the right error happens. `TextTestRunner` "
+                "runs every test and reports the result (its usual, chatty report goes to a throwaway `io.StringIO()` "
+                "here so this example prints a short summary instead)."
+            ),
+            h("A failing test"),
+            code(
+                """\
+import io
+import unittest
+
+
+class MathTests(unittest.TestCase):
+    def test_addition(self):
+        self.assertEqual(1 + 1, 2)
+
+    def test_broken(self):
+        self.assertEqual(2 + 2, 5)      # deliberately wrong, to see a failure
+
+
+suite = unittest.TestLoader().loadTestsFromTestCase(MathTests)
+result = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
+
+print("Ran", result.testsRun, "tests,", len(result.failures), "failed")
+for test, _ in result.failures:
+    print("FAILED:", test)"""
+            ),
+            out(
+                """\
+Ran 2 tests, 1 failed
+FAILED: test_broken (__main__.MathTests.test_broken)"""
+            ),
+            p("The full failure also includes exactly which line and value were wrong (left out here for brevity); on your own computer, `python -m unittest -v` prints all of that directly to your terminal."),
+            sec(
+                "Tests turn \"I think this works\" into \"I proved it works, and I'll know immediately if I ever break "
+                "it.\" Validators, parsers and crypto helpers deserve tests most of all: a subtle bug there is a vulnerability."
+            ),
+            tip("Write a test for the normal case, a test for an edge case (empty input, zero, the boundary of a range), and a test for the error case. That combination catches most bugs."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Write `is_strong_password(password)`: it returns `True` only when the password is **at least 10 "
+                "characters**, contains **a digit**, and contains an **uppercase letter**. Then write the class "
+                "`PasswordTests(unittest.TestCase)` with at least three `test_` methods that check your function "
+                "(a password that should pass, and at least two that should fail, for different reasons)."
+            ),
+            "starter": "import unittest\n\n\ndef is_strong_password(password):\n    pass\n\n\nclass PasswordTests(unittest.TestCase):\n    pass  # write at least 3 test_ methods\n",
+            "hint": "`len(password) >= 10 and any(c.isdigit() for c in password) and any(c.isupper() for c in password)`. In the tests, call `self.assertTrue(...)` or `self.assertFalse(...)` on `is_strong_password(...)`.",
+            "solution": (
+                "import unittest\n\n\n"
+                "def is_strong_password(password):\n"
+                "    return (\n"
+                "        len(password) >= 10\n"
+                "        and any(char.isdigit() for char in password)\n"
+                "        and any(char.isupper() for char in password)\n"
+                "    )\n\n\n"
+                "class PasswordTests(unittest.TestCase):\n"
+                "    def test_strong_password_passes(self):\n"
+                '        self.assertTrue(is_strong_password("Hunter2024"))\n\n'
+                "    def test_short_password_fails(self):\n"
+                '        self.assertFalse(is_strong_password("Ab1"))\n\n'
+                "    def test_password_without_a_digit_fails(self):\n"
+                '        self.assertFalse(is_strong_password("NoDigitsHere"))\n'
+            ),
+            "check": """\
+import io
+assert is_strong_password("Hunter2024") is True, "A 10+ character password with a digit and an uppercase letter should be strong."
+assert is_strong_password("weak") is False, "A short password must not be strong."
+assert is_strong_password("nodigitshere") is False, "A password without any digit must not be strong."
+assert is_strong_password("alllowercase1") is False, "A password without any uppercase letter must not be strong."
+method_names = [name for name in dir(PasswordTests) if name.startswith("test_")]
+assert len(method_names) >= 3, f"PasswordTests should have at least 3 test_ methods, found {len(method_names)}."
+suite = unittest.TestLoader().loadTestsFromTestCase(PasswordTests)
+result = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
+assert result.wasSuccessful(), f"Your own tests should pass against your own function ({len(result.failures)} failed, {len(result.errors)} errored)."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ gui-concepts
+    {
+        "id": "gui-concepts",
+        "title": "GUI Concepts: Events & Widgets",
+        "summary": "The ideas behind every graphical app: widgets, callbacks and state — simulated here, real on your computer.",
+        "blocks": [
+            p(
+                "A GUI app — a window with buttons you click — is built in Python the same way as any other program: "
+                "with a library. This in-browser sandbox intentionally has no real screen to draw on, so a real window "
+                "can't open here. But the **ideas** behind every GUI toolkit — widgets, events, callbacks and state — "
+                "are exactly the same whether the widgets are real or, as here, simulated in text. Everything in this "
+                "lesson transfers directly to `tkinter`, PyQt, or any other GUI you build on your own computer."
+            ),
+            warn("This sandbox has no display, so no real window can open here. A real, runnable `tkinter` example is at the end of this lesson, to try on your own computer."),
+            h("The event loop idea"),
+            p(
+                "A GUI program doesn't run top to bottom like the scripts you've written. It sits and waits for "
+                "**events** (a click, a key press) and calls the function you registered for that event: a **callback**."
+            ),
+            code(
+                """\
+class Button:
+    def __init__(self, label):
+        self.label = label
+        self._on_click = None
+
+    def on_click(self, callback):
+        self._on_click = callback
+
+    def click(self):          # a real toolkit calls this itself when the mouse is pressed
+        if self._on_click:
+            self._on_click()
+
+
+count = 0
+button = Button("Add one")
+
+def handle_click():
+    global count
+    count += 1
+    print(f"{button.label} clicked -> count is now {count}")
+
+button.on_click(handle_click)
+
+button.click()
+button.click()
+button.click()"""
+            ),
+            out(
+                """\
+Add one clicked -> count is now 1
+Add one clicked -> count is now 2
+Add one clicked -> count is now 3"""
+            ),
+            h("Widgets and shared state"),
+            p("A small app is usually a class holding its widgets and its state together, with callbacks as its own methods."),
+            code(
+                """\
+class Label:
+    def __init__(self, text=""):
+        self.text = text
+
+    def render(self):
+        print(f"[Label] {self.text}")
+
+
+class Button:
+    def __init__(self, label):
+        self.label = label
+        self._on_click = None
+
+    def on_click(self, callback):
+        self._on_click = callback
+
+    def click(self):
+        if self._on_click:
+            self._on_click()
+
+
+class CounterApp:
+    def __init__(self):
+        self.count = 0
+        self.label = Label("Count: 0")
+        self.button = Button("+1")
+        self.button.on_click(self.increment)
+
+    def increment(self):
+        self.count += 1
+        self.label.text = f"Count: {self.count}"
+        self.label.render()
+
+
+app = CounterApp()
+app.button.click()
+app.button.click()"""
+            ),
+            out(
+                """\
+[Label] Count: 1
+[Label] Count: 2"""
+            ),
+            sec(
+                "**A text field's content is still untrusted input**, just like a function argument or a CLI flag. "
+                "Validate it the same way: convert inside a `try`/`except`, never with `eval()`."
+            ),
+            code(
+                """\
+class TextInput:
+    def __init__(self):
+        self.value = ""
+
+    def type(self, text):     # simulates the user typing
+        self.value += text
+
+
+class Label:
+    def __init__(self, text=""):
+        self.text = text
+
+
+class Form:
+    def __init__(self):
+        self.age_input = TextInput()
+        self.message = Label()
+
+    def submit(self):
+        try:
+            age = int(self.age_input.value)
+        except ValueError:
+            self.message.text = "Please enter a whole number"
+            return
+        if not 0 <= age <= 120:
+            self.message.text = "That doesn't look like a real age"
+            return
+        self.message.text = f"Thanks, you are {age} years old"
+
+
+form = Form()
+form.age_input.type("thirty")
+form.submit()
+print(form.message.text)
+
+form2 = Form()
+form2.age_input.type("30")
+form2.submit()
+print(form2.message.text)"""
+            ),
+            out(
+                """\
+Please enter a whole number
+Thanks, you are 30 years old"""
+            ),
+            h("The real thing: tkinter"),
+            p("`tkinter` ships with Python already, so `python my_app.py` runs it with nothing extra to install. Compare it with `CounterApp` above: same shape, a real window."),
+            example(
+                """\
+import tkinter as tk
+
+
+def increment():
+    global count
+    count += 1
+    label.config(text=f"Count: {count}")
+
+
+count = 0
+root = tk.Tk()
+root.title("Counter")
+
+label = tk.Label(root, text="Count: 0")
+label.pack()
+
+button = tk.Button(root, text="+1", command=increment)
+button.pack()
+
+root.mainloop()   # the REAL event loop: it waits here, calling your callbacks, until the window closes"""
+            ),
+            p("A widget (`Button`), a callback (`increment`), and state (`count`, the label's text) updated inside it: the same three ideas as the simulation above. For richer apps look at PyQt/PySide or Kivy, or, for the web, a framework like Flask serving HTML forms instead of widgets."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Widgets (`Label`, `TextInput`, `Button`) are provided. Build `LoginForm`. `__init__` creates "
+                "`self.username_input`, `self.password_input` (both `TextInput`), `self.message` (a `Label`, starting "
+                "text `\"\"`), and `self.submit_button` (a `Button`), wired so clicking it calls `self.try_login`. "
+                "`try_login` sets `self.message.text` to `\"Fields cannot be empty\"` if the username or password is "
+                "empty; otherwise `\"Password is too short\"` if the password is under 8 characters; otherwise "
+                "`f\"Welcome, {username}!\"`."
+            ),
+            "starter": (
+                "class Label:\n    def __init__(self, text=\"\"):\n        self.text = text\n\n\n"
+                "class TextInput:\n    def __init__(self):\n        self.value = \"\"\n\n"
+                "    def type(self, text):\n        self.value += text\n\n\n"
+                "class Button:\n    def __init__(self):\n        self._on_click = None\n\n"
+                "    def on_click(self, callback):\n        self._on_click = callback\n\n"
+                "    def click(self):\n        if self._on_click:\n            self._on_click()\n\n\n"
+                "class LoginForm:\n    def __init__(self):\n        pass  # create the widgets described above\n\n"
+                "    def try_login(self):\n        pass  # fill in the validation rules described in the prompt\n"
+            ),
+            "hint": "In `__init__`, create the four attributes and call `self.submit_button.on_click(self.try_login)`. In `try_login`, read `self.username_input.value` and `self.password_input.value` first, then check them in order: empty, then short, then success.",
+            "solution": (
+                "class Label:\n    def __init__(self, text=\"\"):\n        self.text = text\n\n\n"
+                "class TextInput:\n    def __init__(self):\n        self.value = \"\"\n\n"
+                "    def type(self, text):\n        self.value += text\n\n\n"
+                "class Button:\n    def __init__(self):\n        self._on_click = None\n\n"
+                "    def on_click(self, callback):\n        self._on_click = callback\n\n"
+                "    def click(self):\n        if self._on_click:\n            self._on_click()\n\n\n"
+                "class LoginForm:\n"
+                "    def __init__(self):\n"
+                "        self.username_input = TextInput()\n"
+                "        self.password_input = TextInput()\n"
+                "        self.message = Label()\n"
+                "        self.submit_button = Button()\n"
+                "        self.submit_button.on_click(self.try_login)\n\n"
+                "    def try_login(self):\n"
+                "        username = self.username_input.value\n"
+                "        password = self.password_input.value\n"
+                "        if not username or not password:\n"
+                '            self.message.text = "Fields cannot be empty"\n'
+                "        elif len(password) < 8:\n"
+                '            self.message.text = "Password is too short"\n'
+                "        else:\n"
+                '            self.message.text = f"Welcome, {username}!"\n'
+            ),
+            "check": """\
+form = LoginForm()
+form.submit_button.click()
+assert form.message.text == "Fields cannot be empty", f"Empty fields should give 'Fields cannot be empty' but got {form.message.text!r}."
+form2 = LoginForm()
+form2.username_input.type("ada")
+form2.submit_button.click()
+assert form2.message.text == "Fields cannot be empty", "A missing password should still count as empty fields."
+form3 = LoginForm()
+form3.username_input.type("ada")
+form3.password_input.type("short")
+form3.submit_button.click()
+assert form3.message.text == "Password is too short", f"A password under 8 characters should be rejected, got {form3.message.text!r}."
+form4 = LoginForm()
+form4.username_input.type("ada")
+form4.password_input.type("longenoughpassword")
+form4.submit_button.click()
+assert form4.message.text == "Welcome, ada!", f"Expected 'Welcome, ada!' but got {form4.message.text!r}."
+assert isinstance(form4.submit_button, Button) and isinstance(form4.username_input, TextInput), "Use the provided widget classes."
+""",
+        },
+    },
+    # ------------------------------------------------------------------ security-toolkit
+    {
+        "id": "security-toolkit",
+        "title": "Capstone: An Interactive Security Toolkit",
+        "summary": "Build a full command-driven app: classes, hashing and a dispatch loop, tied together.",
+        "blocks": [
+            p(
+                "This capstone pulls together classes, hashing and command handling into one small tool: the shape "
+                "every larger program takes, pieces that each do one job, combined behind a simple interface."
+            ),
+            h("The dispatch pattern"),
+            p("A command-driven program reads a line, decides which piece of code should handle it, and calls it. A dictionary of handlers is a clean way to do that."),
+            code(
+                """\
+def cmd_double(argument):
+    return int(argument) * 2
+
+def cmd_upper(argument):
+    return argument.upper()
+
+handlers = {"double": cmd_double, "upper": cmd_upper}
+
+def dispatch(line):
+    command, _, rest = line.partition(" ")
+    handler = handlers.get(command)
+    if handler is None:
+        return f"Unknown command: {command}"
+    return handler(rest)
+
+for line in ["double 21", "upper hello", "delete everything"]:
+    print(dispatch(line))"""
+            ),
+            out(
+                """\
+42
+HELLO
+Unknown command: delete"""
+            ),
+            sec(
+                "A dictionary (or `if`/`elif` chain) that only runs code you explicitly registered is another "
+                "**allow-list**: nothing outside the known commands can execute, so a typo or a hostile command name "
+                "is simply rejected instead of doing something unexpected."
+            ),
+            h("Putting it together: a real interactive app"),
+            p(
+                "Your turn: build `Toolkit`, an object that remembers a log of what it has done, an audit trail like "
+                "the `AuditLog` from the Integrity lesson, and exposes a couple of operations. Then wrap it in a loop "
+                "that reads a command and dispatches it, the same idea behind `git`'s subcommands or the menu of any "
+                "interactive program. Type commands into the Input box below, one per line, exactly like a real terminal session."
+            ),
+            tip("A class holding state and behaviour, plus a small loop turning typed commands into method calls, is the skeleton of countless real tools: package managers, deployment scripts, chat bots, database shells."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Finish `Toolkit`. It starts with `self.log = []`. `check_password(password)` returns `\"strong\"` if the "
+                "password is at least 10 characters **and** has a digit **and** has an uppercase letter, otherwise "
+                "`\"weak\"`; either way it appends `f\"checked password: {result}\"` to the log. `hash_text(text)` returns "
+                "`hashlib.sha256(text.encode()).hexdigest()` and appends `\"hashed text\"` to the log. `history()` returns "
+                "a **copy** of the log, never the original list. Then finish `main()`'s loop: on `\"password <text>\"` print "
+                "`check_password(...)`; on `\"hash <text>\"` print `hash_text(...)`; on `\"history\"` print the log joined "
+                "with `\", \"`; on `\"quit\"` print `\"Goodbye!\"` and stop; otherwise print `f\"Unknown command: {command}\"`."
+            ),
+            "starter": (
+                "import hashlib\n\n\n"
+                "class Toolkit:\n"
+                "    def __init__(self):\n        self.log = []\n\n"
+                "    def check_password(self, password):\n        pass\n\n"
+                "    def hash_text(self, text):\n        pass\n\n"
+                "    def history(self):\n        pass\n\n\n"
+                "def main():\n"
+                "    toolkit = Toolkit()\n"
+                "    while True:\n"
+                "        line = input()\n"
+                '        command, _, rest = line.partition(" ")\n'
+                "        # fill in the command handling described in the prompt\n\n\n"
+                "main()\n"
+            ),
+            "hint": "check_password: `len(password) >= 10 and any(c.isdigit() for c in password) and any(c.isupper() for c in password)`, then `self.log.append(...)`. hash_text: `hashlib.sha256(text.encode()).hexdigest()`. history: `return list(self.log)`. In main's loop, use `if command == \"password\": print(toolkit.check_password(rest))`, and so on; `break` after printing \"Goodbye!\".",
+            "solution": (
+                "import hashlib\n\n\n"
+                "class Toolkit:\n"
+                "    def __init__(self):\n"
+                "        self.log = []\n\n"
+                "    def check_password(self, password):\n"
+                "        strong = (\n"
+                "            len(password) >= 10\n"
+                "            and any(char.isdigit() for char in password)\n"
+                "            and any(char.isupper() for char in password)\n"
+                "        )\n"
+                '        result = "strong" if strong else "weak"\n'
+                '        self.log.append(f"checked password: {result}")\n'
+                "        return result\n\n"
+                "    def hash_text(self, text):\n"
+                "        digest = hashlib.sha256(text.encode()).hexdigest()\n"
+                '        self.log.append("hashed text")\n'
+                "        return digest\n\n"
+                "    def history(self):\n"
+                "        return list(self.log)\n\n\n"
+                "def main():\n"
+                "    toolkit = Toolkit()\n"
+                "    while True:\n"
+                "        line = input()\n"
+                '        command, _, rest = line.partition(" ")\n'
+                '        if command == "quit":\n'
+                '            print("Goodbye!")\n'
+                "            break\n"
+                '        elif command == "password":\n'
+                "            print(toolkit.check_password(rest))\n"
+                '        elif command == "hash":\n'
+                "            print(toolkit.hash_text(rest))\n"
+                '        elif command == "history":\n'
+                '            print(", ".join(toolkit.history()))\n'
+                "        else:\n"
+                '            print(f"Unknown command: {command}")\n\n\n'
+                "main()\n"
+            ),
+            "stdin": "password Hunter2024\nhash hello\nhistory\nquit",
+            "check": """\
+def run(commands):
+    return run_again("\\n".join(commands))
+
+out1 = run(["password Hunter2024", "quit"])
+assert out1.splitlines() == ["strong", "Goodbye!"], f"Expected ['strong', 'Goodbye!'] but got {out1.splitlines()!r}."
+
+out2 = run(["password weak", "quit"])
+assert out2.splitlines() == ["weak", "Goodbye!"], f"'weak' (4 characters) should be reported as weak, got {out2.splitlines()!r}."
+
+out3 = run(["hash hello", "quit"])
+assert out3.splitlines()[0] == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", f"hash_text('hello') should be the real sha256 hex digest, got {out3.splitlines()[0]!r}."
+
+out4 = run(["password Hunter2024", "hash hello", "history", "quit"])
+lines = out4.splitlines()
+assert lines[0] == "strong", f"got {lines!r}"
+assert lines[2] == "checked password: strong, hashed text", f"history() should be joined with ', ' but got {lines[2]!r}."
+
+out5 = run(["unknown-thing", "quit"])
+assert out5.splitlines()[0] == "Unknown command: unknown-thing", f"got {out5.splitlines()[0]!r}"
+
+toolkit = Toolkit()
+toolkit.check_password("Hunter2024")
+copy = toolkit.history()
+copy.append("forged")
+assert toolkit.history() == ["checked password: strong"], "history() must return a copy so callers cannot tamper with the real log."
+
+assert Toolkit().check_password("nodigitshere") == "weak", "A password without a digit should be weak even if long."
+assert Toolkit().check_password("short1A") == "weak", "A password under 10 characters should be weak."
 """,
         },
     },
