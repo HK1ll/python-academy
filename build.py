@@ -20,6 +20,16 @@ from lessons import LESSONS, SECTIONS  # noqa: E402
 OUTPUT = BASE_DIR / "public" / "data" / "lessons.json"
 EXAMPLES_OUTPUT = BASE_DIR / "public" / "data" / "examples.json"
 ID_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+# Lesson/example ids end up as JavaScript object keys (localStorage, dynamic lookups). None of
+# today's ids collide with a JS Object.prototype member, but this keeps it that way on purpose
+# rather than by luck, since a future id like "constructor" could behave oddly as a plain key.
+RESERVED_IDS = frozenset(
+    [
+        "constructor", "prototype", "__proto__", "toString", "toLocaleString", "valueOf",
+        "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable",
+        "__defineGetter__", "__defineSetter__", "__lookupGetter__", "__lookupSetter__",
+    ]
+)
 BLOCK_TYPES = {"p", "h", "list", "tip", "warn", "sec", "code", "codeonly", "output"}
 EXERCISE_STR_KEYS = ("prompt", "starter", "hint", "solution", "check")
 MAX_TEXT = 8_000
@@ -47,6 +57,8 @@ def build() -> list[dict]:
         lid = lesson.get("id")
         if not isinstance(lid, str) or not ID_PATTERN.fullmatch(lid):
             fail(f"lesson {number}: id must be lowercase-kebab-case, got {lid!r}")
+        if lid in RESERVED_IDS:
+            fail(f"lesson {number}: id {lid!r} collides with a JS Object.prototype member")
         if lid in seen:
             fail(f"duplicate lesson id {lid!r}")
         seen.add(lid)
@@ -121,6 +133,8 @@ def build_examples() -> list[dict]:
         eid = example.get("id")
         if not isinstance(eid, str) or not ID_PATTERN.fullmatch(eid):
             fail(f"example id must be lowercase-kebab-case, got {eid!r}")
+        if eid in RESERVED_IDS:
+            fail(f"example id {eid!r} collides with a JS Object.prototype member")
         if eid in seen:
             fail(f"duplicate example id {eid!r}")
         seen.add(eid)
