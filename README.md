@@ -2,9 +2,11 @@
 
 An interactive web app for learning Python: 37 lessons in six sections (basics; modules and
 files; object-oriented programming; intermediate Python with generators and decorators;
-programming for security, ending in a Log Analyzer project; and building real tools & apps —
-CLI tools, config/logging, automated testing, GUI concepts, and a capstone interactive
-security toolkit), runnable examples, auto-checked exercises and a free Playground. Python runs **inside the learner's browser**
+a single Cybersecurity section covering secure classes, regex, networking, encoding,
+integrity/hashing and time-based detection, ending in two capstones — a Log Analyzer project
+and an interactive Security Toolkit; and building real tools & apps — CLI tools,
+config/logging, automated testing and GUI concepts), runnable examples, auto-checked
+exercises and a free Playground. Python runs **inside the learner's browser**
 (Pyodide/WebAssembly in a Web Worker), so there is no server that executes code.
 
 ## Run it

@@ -67,15 +67,15 @@ SECTIONS = [
     },
     {"title": "Intermediate Python", "ids": ["flexible-functions", "generators", "decorators"]},
     {
-        "title": "Programming for Security",
+        "title": "Cybersecurity",
         "ids": [
             "secure-classes", "regex", "collections-tools", "networking",
-            "encoding", "integrity", "time-detection", "project-log-analyzer",
+            "encoding", "integrity", "time-detection", "project-log-analyzer", "security-toolkit",
         ],
     },
     {
         "title": "Building Real Tools & Apps",
-        "ids": ["cli-tools", "app-structure", "testing", "gui-concepts", "security-toolkit"],
+        "ids": ["cli-tools", "app-structure", "testing", "gui-concepts"],
     },
 ]
 
@@ -4252,6 +4252,155 @@ assert quiet.report() == "Parsed events: 0\\nSkipped lines: 0\\nSuspicious IPs (
 """,
         },
     },
+    # ------------------------------------------------------------------ security-toolkit
+    {
+        "id": "security-toolkit",
+        "title": "Capstone: An Interactive Security Toolkit",
+        "summary": "Build a full command-driven app: classes, hashing and a dispatch loop, tied together.",
+        "blocks": [
+            p(
+                "This capstone pulls together classes, hashing and command handling into one small tool: the shape "
+                "every larger program takes, pieces that each do one job, combined behind a simple interface."
+            ),
+            h("The dispatch pattern"),
+            p("A command-driven program reads a line, decides which piece of code should handle it, and calls it. A dictionary of handlers is a clean way to do that."),
+            code(
+                """\
+def cmd_double(argument):
+    return int(argument) * 2
+
+def cmd_upper(argument):
+    return argument.upper()
+
+handlers = {"double": cmd_double, "upper": cmd_upper}
+
+def dispatch(line):
+    command, _, rest = line.partition(" ")
+    handler = handlers.get(command)
+    if handler is None:
+        return f"Unknown command: {command}"
+    return handler(rest)
+
+for line in ["double 21", "upper hello", "delete everything"]:
+    print(dispatch(line))"""
+            ),
+            out(
+                """\
+42
+HELLO
+Unknown command: delete"""
+            ),
+            sec(
+                "A dictionary (or `if`/`elif` chain) that only runs code you explicitly registered is another "
+                "**allow-list**: nothing outside the known commands can execute, so a typo or a hostile command name "
+                "is simply rejected instead of doing something unexpected."
+            ),
+            h("Putting it together: a real interactive app"),
+            p(
+                "Your turn: build `Toolkit`, an object that remembers a log of what it has done, an audit trail like "
+                "the `AuditLog` from the Integrity lesson, and exposes a couple of operations. Then wrap it in a loop "
+                "that reads a command and dispatches it, the same idea behind `git`'s subcommands or the menu of any "
+                "interactive program. Type commands into the Input box below, one per line, exactly like a real terminal session."
+            ),
+            tip("A class holding state and behaviour, plus a small loop turning typed commands into method calls, is the skeleton of countless real tools: package managers, deployment scripts, chat bots, database shells."),
+        ],
+        "exercise": {
+            "prompt": (
+                "Finish `Toolkit`. It starts with `self.log = []`. `check_password(password)` returns `\"strong\"` if the "
+                "password is at least 10 characters **and** has a digit **and** has an uppercase letter, otherwise "
+                "`\"weak\"`; either way it appends `f\"checked password: {result}\"` to the log. `hash_text(text)` returns "
+                "`hashlib.sha256(text.encode()).hexdigest()` and appends `\"hashed text\"` to the log. `history()` returns "
+                "a **copy** of the log, never the original list. Then finish `main()`'s loop: on `\"password <text>\"` print "
+                "`check_password(...)`; on `\"hash <text>\"` print `hash_text(...)`; on `\"history\"` print the log joined "
+                "with `\", \"`; on `\"quit\"` print `\"Goodbye!\"` and stop; otherwise print `f\"Unknown command: {command}\"`."
+            ),
+            "starter": (
+                "import hashlib\n\n\n"
+                "class Toolkit:\n"
+                "    def __init__(self):\n        self.log = []\n\n"
+                "    def check_password(self, password):\n        pass\n\n"
+                "    def hash_text(self, text):\n        pass\n\n"
+                "    def history(self):\n        pass\n\n\n"
+                "def main():\n"
+                "    toolkit = Toolkit()\n"
+                "    while True:\n"
+                "        line = input()\n"
+                '        command, _, rest = line.partition(" ")\n'
+                "        # fill in the command handling described in the prompt\n\n\n"
+                "main()\n"
+            ),
+            "hint": "check_password: `len(password) >= 10 and any(c.isdigit() for c in password) and any(c.isupper() for c in password)`, then `self.log.append(...)`. hash_text: `hashlib.sha256(text.encode()).hexdigest()`. history: `return list(self.log)`. In main's loop, use `if command == \"password\": print(toolkit.check_password(rest))`, and so on; `break` after printing \"Goodbye!\".",
+            "solution": (
+                "import hashlib\n\n\n"
+                "class Toolkit:\n"
+                "    def __init__(self):\n"
+                "        self.log = []\n\n"
+                "    def check_password(self, password):\n"
+                "        strong = (\n"
+                "            len(password) >= 10\n"
+                "            and any(char.isdigit() for char in password)\n"
+                "            and any(char.isupper() for char in password)\n"
+                "        )\n"
+                '        result = "strong" if strong else "weak"\n'
+                '        self.log.append(f"checked password: {result}")\n'
+                "        return result\n\n"
+                "    def hash_text(self, text):\n"
+                "        digest = hashlib.sha256(text.encode()).hexdigest()\n"
+                '        self.log.append("hashed text")\n'
+                "        return digest\n\n"
+                "    def history(self):\n"
+                "        return list(self.log)\n\n\n"
+                "def main():\n"
+                "    toolkit = Toolkit()\n"
+                "    while True:\n"
+                "        line = input()\n"
+                '        command, _, rest = line.partition(" ")\n'
+                '        if command == "quit":\n'
+                '            print("Goodbye!")\n'
+                "            break\n"
+                '        elif command == "password":\n'
+                "            print(toolkit.check_password(rest))\n"
+                '        elif command == "hash":\n'
+                "            print(toolkit.hash_text(rest))\n"
+                '        elif command == "history":\n'
+                '            print(", ".join(toolkit.history()))\n'
+                "        else:\n"
+                '            print(f"Unknown command: {command}")\n\n\n'
+                "main()\n"
+            ),
+            "stdin": "password Hunter2024\nhash hello\nhistory\nquit",
+            "check": """\
+def run(commands):
+    return run_again("\\n".join(commands))
+
+out1 = run(["password Hunter2024", "quit"])
+assert out1.splitlines() == ["strong", "Goodbye!"], f"Expected ['strong', 'Goodbye!'] but got {out1.splitlines()!r}."
+
+out2 = run(["password weak", "quit"])
+assert out2.splitlines() == ["weak", "Goodbye!"], f"'weak' (4 characters) should be reported as weak, got {out2.splitlines()!r}."
+
+out3 = run(["hash hello", "quit"])
+assert out3.splitlines()[0] == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", f"hash_text('hello') should be the real sha256 hex digest, got {out3.splitlines()[0]!r}."
+
+out4 = run(["password Hunter2024", "hash hello", "history", "quit"])
+lines = out4.splitlines()
+assert lines[0] == "strong", f"got {lines!r}"
+assert lines[2] == "checked password: strong, hashed text", f"history() should be joined with ', ' but got {lines[2]!r}."
+
+out5 = run(["unknown-thing", "quit"])
+assert out5.splitlines()[0] == "Unknown command: unknown-thing", f"got {out5.splitlines()[0]!r}"
+
+toolkit = Toolkit()
+toolkit.check_password("Hunter2024")
+copy = toolkit.history()
+copy.append("forged")
+assert toolkit.history() == ["checked password: strong"], "history() must return a copy so callers cannot tamper with the real log."
+
+assert Toolkit().check_password("nodigitshere") == "weak", "A password without a digit should be weak even if long."
+assert Toolkit().check_password("short1A") == "weak", "A password under 10 characters should be weak."
+""",
+        },
+    },
     # ------------------------------------------------------------------ cli-tools
     {
         "id": "cli-tools",
@@ -4896,155 +5045,6 @@ form4.password_input.type("longenoughpassword")
 form4.submit_button.click()
 assert form4.message.text == "Welcome, ada!", f"Expected 'Welcome, ada!' but got {form4.message.text!r}."
 assert isinstance(form4.submit_button, Button) and isinstance(form4.username_input, TextInput), "Use the provided widget classes."
-""",
-        },
-    },
-    # ------------------------------------------------------------------ security-toolkit
-    {
-        "id": "security-toolkit",
-        "title": "Capstone: An Interactive Security Toolkit",
-        "summary": "Build a full command-driven app: classes, hashing and a dispatch loop, tied together.",
-        "blocks": [
-            p(
-                "This capstone pulls together classes, hashing and command handling into one small tool: the shape "
-                "every larger program takes, pieces that each do one job, combined behind a simple interface."
-            ),
-            h("The dispatch pattern"),
-            p("A command-driven program reads a line, decides which piece of code should handle it, and calls it. A dictionary of handlers is a clean way to do that."),
-            code(
-                """\
-def cmd_double(argument):
-    return int(argument) * 2
-
-def cmd_upper(argument):
-    return argument.upper()
-
-handlers = {"double": cmd_double, "upper": cmd_upper}
-
-def dispatch(line):
-    command, _, rest = line.partition(" ")
-    handler = handlers.get(command)
-    if handler is None:
-        return f"Unknown command: {command}"
-    return handler(rest)
-
-for line in ["double 21", "upper hello", "delete everything"]:
-    print(dispatch(line))"""
-            ),
-            out(
-                """\
-42
-HELLO
-Unknown command: delete"""
-            ),
-            sec(
-                "A dictionary (or `if`/`elif` chain) that only runs code you explicitly registered is another "
-                "**allow-list**: nothing outside the known commands can execute, so a typo or a hostile command name "
-                "is simply rejected instead of doing something unexpected."
-            ),
-            h("Putting it together: a real interactive app"),
-            p(
-                "Your turn: build `Toolkit`, an object that remembers a log of what it has done, an audit trail like "
-                "the `AuditLog` from the Integrity lesson, and exposes a couple of operations. Then wrap it in a loop "
-                "that reads a command and dispatches it, the same idea behind `git`'s subcommands or the menu of any "
-                "interactive program. Type commands into the Input box below, one per line, exactly like a real terminal session."
-            ),
-            tip("A class holding state and behaviour, plus a small loop turning typed commands into method calls, is the skeleton of countless real tools: package managers, deployment scripts, chat bots, database shells."),
-        ],
-        "exercise": {
-            "prompt": (
-                "Finish `Toolkit`. It starts with `self.log = []`. `check_password(password)` returns `\"strong\"` if the "
-                "password is at least 10 characters **and** has a digit **and** has an uppercase letter, otherwise "
-                "`\"weak\"`; either way it appends `f\"checked password: {result}\"` to the log. `hash_text(text)` returns "
-                "`hashlib.sha256(text.encode()).hexdigest()` and appends `\"hashed text\"` to the log. `history()` returns "
-                "a **copy** of the log, never the original list. Then finish `main()`'s loop: on `\"password <text>\"` print "
-                "`check_password(...)`; on `\"hash <text>\"` print `hash_text(...)`; on `\"history\"` print the log joined "
-                "with `\", \"`; on `\"quit\"` print `\"Goodbye!\"` and stop; otherwise print `f\"Unknown command: {command}\"`."
-            ),
-            "starter": (
-                "import hashlib\n\n\n"
-                "class Toolkit:\n"
-                "    def __init__(self):\n        self.log = []\n\n"
-                "    def check_password(self, password):\n        pass\n\n"
-                "    def hash_text(self, text):\n        pass\n\n"
-                "    def history(self):\n        pass\n\n\n"
-                "def main():\n"
-                "    toolkit = Toolkit()\n"
-                "    while True:\n"
-                "        line = input()\n"
-                '        command, _, rest = line.partition(" ")\n'
-                "        # fill in the command handling described in the prompt\n\n\n"
-                "main()\n"
-            ),
-            "hint": "check_password: `len(password) >= 10 and any(c.isdigit() for c in password) and any(c.isupper() for c in password)`, then `self.log.append(...)`. hash_text: `hashlib.sha256(text.encode()).hexdigest()`. history: `return list(self.log)`. In main's loop, use `if command == \"password\": print(toolkit.check_password(rest))`, and so on; `break` after printing \"Goodbye!\".",
-            "solution": (
-                "import hashlib\n\n\n"
-                "class Toolkit:\n"
-                "    def __init__(self):\n"
-                "        self.log = []\n\n"
-                "    def check_password(self, password):\n"
-                "        strong = (\n"
-                "            len(password) >= 10\n"
-                "            and any(char.isdigit() for char in password)\n"
-                "            and any(char.isupper() for char in password)\n"
-                "        )\n"
-                '        result = "strong" if strong else "weak"\n'
-                '        self.log.append(f"checked password: {result}")\n'
-                "        return result\n\n"
-                "    def hash_text(self, text):\n"
-                "        digest = hashlib.sha256(text.encode()).hexdigest()\n"
-                '        self.log.append("hashed text")\n'
-                "        return digest\n\n"
-                "    def history(self):\n"
-                "        return list(self.log)\n\n\n"
-                "def main():\n"
-                "    toolkit = Toolkit()\n"
-                "    while True:\n"
-                "        line = input()\n"
-                '        command, _, rest = line.partition(" ")\n'
-                '        if command == "quit":\n'
-                '            print("Goodbye!")\n'
-                "            break\n"
-                '        elif command == "password":\n'
-                "            print(toolkit.check_password(rest))\n"
-                '        elif command == "hash":\n'
-                "            print(toolkit.hash_text(rest))\n"
-                '        elif command == "history":\n'
-                '            print(", ".join(toolkit.history()))\n'
-                "        else:\n"
-                '            print(f"Unknown command: {command}")\n\n\n'
-                "main()\n"
-            ),
-            "stdin": "password Hunter2024\nhash hello\nhistory\nquit",
-            "check": """\
-def run(commands):
-    return run_again("\\n".join(commands))
-
-out1 = run(["password Hunter2024", "quit"])
-assert out1.splitlines() == ["strong", "Goodbye!"], f"Expected ['strong', 'Goodbye!'] but got {out1.splitlines()!r}."
-
-out2 = run(["password weak", "quit"])
-assert out2.splitlines() == ["weak", "Goodbye!"], f"'weak' (4 characters) should be reported as weak, got {out2.splitlines()!r}."
-
-out3 = run(["hash hello", "quit"])
-assert out3.splitlines()[0] == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", f"hash_text('hello') should be the real sha256 hex digest, got {out3.splitlines()[0]!r}."
-
-out4 = run(["password Hunter2024", "hash hello", "history", "quit"])
-lines = out4.splitlines()
-assert lines[0] == "strong", f"got {lines!r}"
-assert lines[2] == "checked password: strong, hashed text", f"history() should be joined with ', ' but got {lines[2]!r}."
-
-out5 = run(["unknown-thing", "quit"])
-assert out5.splitlines()[0] == "Unknown command: unknown-thing", f"got {out5.splitlines()[0]!r}"
-
-toolkit = Toolkit()
-toolkit.check_password("Hunter2024")
-copy = toolkit.history()
-copy.append("forged")
-assert toolkit.history() == ["checked password: strong"], "history() must return a copy so callers cannot tamper with the real log."
-
-assert Toolkit().check_password("nodigitshere") == "weak", "A password without a digit should be weak even if long."
-assert Toolkit().check_password("short1A") == "weak", "A password under 10 characters should be weak."
 """,
         },
     },
