@@ -4,3 +4,7 @@ __pycache__/
 .vscode/
 .idea/
 Thumbs.db
+
+# Session-handoff note for continuing work with Claude Code: local reference only, not
+# project documentation (that's README.md) and not meant to be published.
+/pythonAcademy.md
